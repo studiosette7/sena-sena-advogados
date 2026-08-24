@@ -1,0 +1,4 @@
+node_modules
+sessao
+npm-debug.log
+.env

@@ -1,0 +1,19 @@
+# fly launch --no-deploy  e depois  fly deploy
+app = "sena-ponte-whatsapp"
+primary_region = "gru"          # São Paulo
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  NODE_ENV = "production"
+
+# A ponte nao atende HTTP: e um processo que so fala com o WhatsApp e o
+# Supabase. Por isso nao tem [[services]] nem porta exposta.
+[[mounts]]
+  source = "sessao"
+  destination = "/app/sessao"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "512mb"

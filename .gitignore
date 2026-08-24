@@ -1,0 +1,26 @@
+# ============================================================
+# O que NUNCA pode subir
+# ============================================================
+
+# Carrega o CRON_SECRET em claro — é assim que o pg_cron funciona.
+supabase/migrations/*_agendamentos.sql
+
+# Prints do Lawra: produto de terceiro, não é nosso pra publicar.
+referencia/
+
+# Sessão do WhatsApp: são as credenciais do aparelho pareado.
+ponte-whatsapp/sessao/
+ponte-whatsapp/node_modules/
+**/node_modules/
+
+# Estado local do CLI do Supabase (guarda o ref do projeto).
+supabase/.temp/
+supabase/.branches/
+
+# Ajustes da máquina, não do projeto.
+.claude/
+.DS_Store
+**/.DS_Store
+*.log
+.env
+.env.*
