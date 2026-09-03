@@ -402,6 +402,15 @@ ul.fontes a{color:var(--azul);text-decoration:underline;text-underline-offset:2p
 .bt-enviar{background:var(--ouro);color:#20180A}
 .bt-enviar:hover{filter:brightness(1.08)}
 .chat-dica{font-size:11.5px;color:var(--cinza-2);margin-top:7px;text-align:center}
+.anexos{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.anexos:empty{margin-top:0}
+.anexo-chip{display:inline-flex;align-items:center;gap:6px;max-width:100%;
+  background:var(--linha-2);border:1px solid var(--linha);border-radius:8px;
+  padding:4px 6px 4px 9px;font-size:12.5px}
+.anexo-chip b{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:210px}
+.anexo-chip button{display:grid;place-items:center;width:18px;height:18px;border-radius:5px;color:var(--cinza)}
+.anexo-chip button:hover{background:var(--linha);color:var(--texto)}
+.anexo-chip button svg{width:12px;height:12px;stroke-width:2.4}
 .linha-item.aberta{background:var(--linha-2)}
 
 /* ---- próximo passo depois de ler ---- */
@@ -627,6 +636,8 @@ ul.itens li::before{content:'';position:absolute;left:1px;top:.6em;width:5px;hei
 <g id="i-entrada" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h5l2 3h4l2-3h5"/><path d="M5.5 5h13l2.5 7v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6z"/></g>
 <g id="i-olho" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.7-7 10-7 10 7 10 7-3.7 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></g>
 <g id="i-email" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3.5 6.5l8.5 7 8.5-7"/></g>
+<g id="i-clipe" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11.5l-8 8a5 5 0 01-7-7l8.5-8.5a3.5 3.5 0 015 5L10 17.5a2 2 0 01-3-3l7.5-7.5"/></g>
+<g id="i-caneta" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4l10-10a2.8 2.8 0 00-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></g>
 </defs></svg>
 
 <!-- ==================== LOGIN ==================== -->
@@ -878,13 +889,13 @@ var E = {
   obsAba:'observacao', procMovimentos:null,
   docs:[], conversas:[], msgs:[],
   conversaId:null, conversaCtx:{},
-  assist:'perguntar',   /* aba da assistente */
   casoCtx:null,         /* caso que ele estava vendo antes de perguntar */
-  ultimaAnalise:null, docAtual:null,
+  ultimaAnalise:null, docAtual:null, assistArquivo:null,
   /* whatsapp */
   wpp:{sessao:null, caixa:[], msgs:[], abertaId:null, busca:'', editando:false},
   /* gmail */
-  gmail:{status:null, caixa:[], abertaThread:null, busca:'', sincronizando:false, pasta:'inbox'}
+  gmail:{status:null, caixa:[], abertaThread:null, busca:'', sincronizando:false, pasta:'inbox',
+         anexos:[], anexosNovo:[]}
 };
 
 /* "lida" do gmail não vem do servidor (não pedimos permissão pra marcar
@@ -1012,6 +1023,10 @@ function pinta(){
   else                             c.innerHTML = vistaPainel();
   c.scrollTop = 0;
   if(E.vista === 'esteira' && E.modo === 'quadro') ligaArrastar();
+  /* o repinte apaga a lista de anexos do DOM — redesenha a partir do
+     estado, senão o arquivo escolhido some da tela ao chegar um e-mail */
+  if(E.vista === 'gmail') pintaAnexos('gmailAnexos');
+  if(E.vista === 'assistente') pintaAnexoAssist();
   vigiaSessaoWpp();
   vigiaGmail();
 }
@@ -2039,47 +2054,28 @@ function vistaProcesso(){
    =================================================================== */
 var ATALHOS = [
   'Qual o prazo pra recorrer de sentença na Justiça do Trabalho?',
-  'Como fica a conversão de tempo especial depois da EC 103/2019?',
+  'Minute uma petição inicial trabalhista pra este caso',
   'Rescisão indireta: o que preciso provar e qual o risco de reversão?',
   'INSS negou por falta de qualidade de segurado. Que caminhos existem?'
 ];
 
+/* Uma tela só. Antes eram três abas (perguntar / ler documento / minutar
+   peça) fazendo a mesma pergunta pra mesma IA com formulário diferente —
+   agora é um campo só: escreve o que quer, anexa PDF se tiver, e a IA
+   entende o pedido (a regra da peça virou condicional no prompt). */
 function vistaAssistente(){
-  var docs = E.docs.slice().sort(function(a,b){ return new Date(b.criado_at) - new Date(a.criado_at); });
-
-  return '<div class="assist-abas">' +
-      ['perguntar','ler','minutar'].map(function(m){
-        var r = {perguntar:['faisca','Perguntar'], ler:['pasta','Ler documento'], minutar:['lista','Minutar peça']}[m];
-        return '<button data-assist="' + m + '"' + (E.assist === m ? ' aria-pressed="true"' : '') + '>' +
-          ico(r[0]) + r[1] + '</button>';
-      }).join('') +
-    '</div>' +
-
-    '<div class="aviso" style="background:var(--roxo-cl);color:#3B2F6B">' + ico('alerta') +
+  return '<div class="aviso" style="background:var(--roxo-cl);color:#3B2F6B">' + ico('alerta') +
       '<div><b>Ela busca a fonte antes de citar, e mostra o link.</b> Súmula e acórdão só saem ' +
       'com busca feita na hora — se não achar, ela diz que não achou. Peça sai como minuta, ' +
       'com o que falta conferir listado no fim. Confira antes de assinar.</div></div>' +
-
-    (E.assist === 'ler'     ? abaLer(docs)
-   : E.assist === 'minutar' ? abaMinutar()
-   :                          abaPerguntar());
-}
-
-function seletorCaso(id, rotulo, obrigatorio){
-  return '<div class="campo"><label for="' + id + '">' + rotulo + '</label>' +
-    '<select id="' + id + '">' +
-      (obrigatorio ? '' : '<option value="">— sem caso vinculado —</option>') +
-      E.casos.filter(ativo).map(function(c){
-        return '<option value="' + c.id + '"' + (E.casoCtx === c.id ? ' selected' : '') + '>' +
-          esc(c.nome) + ' · ' + esc(c.area) + '</option>';
-      }).join('') +
-    '</select></div>';
+    abaPerguntar();
 }
 
 function abaPerguntar(){
   var msgs = E.msgs,
       conv = E.conversas.filter(function(c){ return c.titulo; }).slice(0, 12),
-      ctx  = E.conversaCtx;
+      ctx  = E.conversaCtx,
+      docs = E.docs.slice().sort(function(a,b){ return new Date(b.criado_at) - new Date(a.criado_at); });
 
   return '<div class="chat-grade">' +
     '<div class="bloco chat">' +
@@ -2098,26 +2094,47 @@ function abaPerguntar(){
       '<div class="chat-pe">' +
         '<div class="escrever">' +
           '<label class="so-leitor" for="pergunta">Sua mensagem</label>' +
-          '<textarea id="pergunta" rows="1" placeholder="Pergunte, ou aperte o microfone e fale…"></textarea>' +
+          '<textarea id="pergunta" rows="1" placeholder="Pergunte, peça uma minuta, ou anexe um PDF…"></textarea>' +
+          '<input type="file" id="arquivo" accept="application/pdf" class="oculto">' +
+          '<button class="bt-voz" id="btAnexoDoc" aria-label="Anexar PDF" title="Anexar um PDF">' +
+            ico('clipe') + '</button>' +
           '<button class="bt-voz" id="btVoz" aria-label="Ditar" title="Ditar (fale em português)">' +
             ico('microfone') + '</button>' +
           '<button class="bt-enviar" id="btPerguntar" aria-label="Enviar">' + ico('enviar') + '</button>' +
         '</div>' +
+        '<div class="anexos" id="assistAnexo"></div>' +
         '<p class="chat-dica" id="chatDica">Enter envia · Shift+Enter quebra linha</p>' +
         '<p class="erro" id="erroAssist"></p>' +
       '</div>' +
     '</div>' +
 
-    '<div class="bloco">' +
-      '<div class="bloco-cab"><h2>Conversas</h2></div>' +
-      (conv.length ? conv.map(function(c){
-        var caso = c.caso_id ? acha(c.caso_id) : null;
-        return '<button class="linha-item' + (c.id === E.conversaId ? ' aberta' : '') +
-          '" data-conversa="' + c.id + '">' +
-          '<span class="li-p"><span class="li-t">' + esc(c.titulo) + '</span>' +
-          '<span class="li-s">' + (caso ? esc(caso.nome) + ' · ' : '') + desde(c.mexida_at) + '</span></span>' +
-          '</button>';
-      }).join('') : '<div class="vazio">' + ico('faisca') + 'Nenhuma conversa ainda.</div>') +
+    '<div style="display:grid;gap:14px;align-content:start">' +
+      '<div class="bloco">' +
+        '<div class="bloco-cab"><h2>Conversas</h2></div>' +
+        (conv.length ? conv.map(function(c){
+          var caso = c.caso_id ? acha(c.caso_id) : null;
+          return '<button class="linha-item' + (c.id === E.conversaId ? ' aberta' : '') +
+            '" data-conversa="' + c.id + '">' +
+            '<span class="li-p"><span class="li-t">' + esc(c.titulo) + '</span>' +
+            '<span class="li-s">' + (caso ? esc(caso.nome) + ' · ' : '') + desde(c.mexida_at) + '</span></span>' +
+            '</button>';
+        }).join('') : '<div class="vazio">' + ico('faisca') + 'Nenhuma conversa ainda.</div>') +
+      '</div>' +
+
+      /* a lista de documentos morava na aba "Ler documento" — como a aba
+         sumiu, ela vem pra cá pra não perder o histórico do que já foi lido */
+      '<div class="bloco">' +
+        '<div class="bloco-cab"><h2>Documentos lidos</h2>' +
+          '<div class="dir"><span class="li-s num">' + docs.length + '</span></div></div>' +
+        (docs.length ? docs.slice(0, 10).map(function(d){
+          var caso = d.caso_id ? acha(d.caso_id) : null;
+          return '<button class="linha-item" data-documento="' + d.id + '">' +
+            '<span class="icone-cx" style="background:var(--linha-2);color:var(--cinza)">' + ico('pasta') + '</span>' +
+            '<span class="li-p"><span class="li-t">' + esc(d.nome) + '</span>' +
+            '<span class="li-s">' + (caso ? esc(caso.nome) + ' · ' : '') +
+              (d.analise ? esc(d.tipo || 'lido') : 'não lido ainda') + '</span></span></button>';
+        }).join('') : '<div class="vazio">' + ico('pasta') + 'Nenhum documento ainda.</div>') +
+      '</div>' +
     '</div>' +
   '</div>';
 }
@@ -2126,9 +2143,9 @@ function chatVazio(){
   return '<div class="chat-vazio">' +
     '<span class="icone-cx" style="background:var(--roxo-cl);color:var(--roxo);width:44px;height:44px">' +
       ico('faisca') + '</span>' +
-    '<b>Pergunte o que quiser</b>' +
-    '<span>Ela busca na lei e na jurisprudência antes de responder, e mostra de onde tirou. ' +
-    'Você pode continuar perguntando em cima da resposta.</span>' +
+    '<b>Pergunte, peça uma peça, ou anexe um documento</b>' +
+    '<span>É tudo no mesmo lugar: dúvida de lei, minuta de petição ou PDF pra ela destrinchar. ' +
+    'Ela busca antes de citar e mostra de onde tirou.</span>' +
     '<div class="atalhos">' + ATALHOS.map(function(a){
       return '<button data-atalho="' + esc(a) + '">' + esc(a) + '</button>';
     }).join('') + '</div>' +
@@ -2137,81 +2154,29 @@ function chatVazio(){
 
 function bolha(m){
   if(m.papel === 'user')
-    return '<div class="msg msg-eu"><div class="balao">' + esc(m.texto) + '</div></div>';
+    return '<div class="msg msg-eu"><div class="balao">' + esc(m.texto) +
+      (m.anexo ? '<div class="li-s" style="margin-top:6px">' + ico('clipe') + ' ' + esc(m.anexo) + '</div>' : '') +
+      '</div></div>';
+  /* documento lido entra na conversa como uma bolha com a análise inteira,
+     no lugar da aba separada que existia antes */
+  if(m.analise)
+    return '<div class="msg msg-ia"><span class="msg-av">' + ico('faisca') + '</span>' +
+      '<div class="balao">' + htmlAnalise(m.analise, m.docId) + '</div></div>';
   var dentro = m.pensando && !m.texto
     ? '<span class="pontinhos"><i></i><i></i><i></i></span>'
     : (m.buscando ? '<div class="buscando">' + ico('busca') + 'Consultando: ' + esc(m.buscando) + '</div>' : '') +
       textoRico(m.texto) +
-      (m.fontes && m.fontes.length ? pintaFontes(m.fontes) : '');
+      (m.fontes && m.fontes.length ? pintaFontes(m.fontes) : '') +
+      (m.zapPara
+        ? '<div class="acoes" style="margin-top:11px"><a class="bt bt-ouro bt-mini" href="' +
+          zap(m.zapPara.whatsapp, m.texto) + '" target="_blank" rel="noopener">' +
+          ico('zap') + 'Mandar pra ' + esc(primeiro(m.zapPara.nome)) + '</a></div>' +
+          '<p class="uso">Revise antes de enviar: sai em nome do escritório, e a OAB não ' +
+          'permite promessa de resultado nem menção a valores.</p>'
+        : '');
   return '<div class="msg msg-ia">' +
     '<span class="msg-av">' + ico('faisca') + '</span>' +
     '<div class="balao">' + dentro + '</div></div>';
-}
-
-function abaLer(docs){
-  return '<div class="grade g-2">' +
-    '<div class="bloco">' +
-      '<div class="bloco-cab"><h2>Ler um documento</h2></div>' +
-      '<div class="bloco-corpo">' +
-        '<label class="solta" id="solta">' +
-          '<input type="file" id="arquivo" accept="application/pdf" class="so-leitor">' +
-          ico('pasta') +
-          '<b>Escolher um PDF</b>' +
-          '<span>Petição, contestação, sentença, laudo do INSS, CNIS, PPP</span>' +
-        '</label>' +
-        seletorCaso('docCaso', 'De qual caso?', false) +
-        '<div class="acoes" style="margin-top:12px">' +
-          '<button class="bt bt-ouro" id="btLer" disabled>' + ico('faisca') + 'Ler e destrinchar</button>' +
-        '</div>' +
-        '<p class="erro" id="erroAssist"></p>' +
-        '<div id="saidaAssist"></div>' +
-      '</div>' +
-    '</div>' +
-    '<div class="bloco">' +
-      '<div class="bloco-cab"><h2>Já lidos</h2><div class="dir"><span class="li-s num">' +
-        docs.length + '</span></div></div>' +
-      (docs.length ? docs.map(function(d){
-        var caso = d.caso_id ? acha(d.caso_id) : null;
-        return '<button class="linha-item" data-documento="' + d.id + '">' +
-          '<span class="icone-cx" style="background:var(--linha-2);color:var(--cinza)">' + ico('pasta') + '</span>' +
-          '<span class="li-p"><span class="li-t">' + esc(d.nome) + '</span>' +
-          '<span class="li-s">' + (caso ? esc(caso.nome) + ' · ' : '') +
-            (d.analise ? esc(d.tipo || 'lido') : 'não lido ainda') + '</span></span>' +
-          '<span class="li-d"><span class="li-s">' + desde(d.criado_at) + '</span></span></button>';
-      }).join('') : '<div class="vazio">' + ico('pasta') + 'Nenhum documento ainda.</div>') +
-    '</div>' +
-  '</div>';
-}
-
-function abaMinutar(){
-  return '<div class="grade g-2">' +
-    '<div class="bloco">' +
-      '<div class="bloco-cab"><h2>Minutar peça</h2></div>' +
-      '<div class="bloco-corpo">' +
-        seletorCaso('minutaCaso', 'Para qual caso', true) +
-        '<div class="campo"><label for="tipoPeca">Que peça</label>' +
-          '<select id="tipoPeca">' +
-            '<option>Petição inicial trabalhista</option>' +
-            '<option>Petição inicial previdenciária</option>' +
-            '<option>Réplica</option>' +
-            '<option>Razões finais</option>' +
-            '<option>Recurso ordinário</option>' +
-            '<option>Contrarrazões</option>' +
-            '<option>Recurso administrativo ao INSS</option>' +
-          '</select></div>' +
-        '<div class="acoes" style="margin-top:12px">' +
-          '<button class="bt bt-ouro" id="btMinutar">' + ico('faisca') + 'Minutar</button>' +
-        '</div>' +
-        '<p class="uso">Ela usa a ficha do caso e tudo que já foi lido dos documentos dele. ' +
-        'Quanto mais documento lido, menos colchete pra você preencher.</p>' +
-        '<p class="erro" id="erroAssist"></p>' +
-      '</div>' +
-    '</div>' +
-    '<div class="bloco" id="caixaMinuta">' +
-      '<div class="bloco-cab"><h2>Minuta</h2></div>' +
-      '<div class="vazio">' + ico('lista') + 'Escolha o caso e a peça.</div>' +
-    '</div>' +
-  '</div>';
 }
 
 /* ---------- saídas ---------- */
@@ -2220,13 +2185,6 @@ function pintaFontes(fontes){
   return '<h4>Fontes consultadas</h4><ul class="fontes">' + fontes.map(function(f){
     return '<li><a href="' + esc(f.url) + '" target="_blank" rel="noopener">' + esc(f.titulo) + '</a></li>';
   }).join('') + '</ul>';
-}
-
-function pintaResposta(r){
-  $('saidaAssist').innerHTML =
-    '<div class="resposta">' + textoRico(r.resposta) + pintaFontes(r.fontes) +
-    '<p class="uso">' + (r.uso && r.uso.buscas ? r.uso.buscas + ' busca(s) na web · ' : '') +
-    'Confira as fontes antes de usar em peça.</p></div>';
 }
 
 /* markdown mínimo: é o que a IA usa e o que dá pra ler */
@@ -2249,7 +2207,9 @@ function textoRico(t){
   return saida;
 }
 
-function pintaAnaliseDoc(a, docId){
+/* Devolve o HTML da análise (a bolha do chat pinta isso). Antes escrevia
+   direto num #saidaAssist da aba que não existe mais. */
+function htmlAnalise(a, docId){
   function bloco(titulo, arr){
     if(!arr || !arr.length) return '';
     return '<h4>' + titulo + '</h4><ul class="itens">' +
@@ -2282,14 +2242,10 @@ function pintaAnaliseDoc(a, docId){
       '<button class="passo" data-passo="peca">' +
         '<span class="icone-cx" style="background:var(--ambar-cl);color:var(--ambar)">' + ico('pasta') + '</span>' +
         '<b>Escrever a peça</b><span>Já respondendo o que está aqui</span></button>' +
-      '<button class="passo" data-passo="conversar">' +
-        '<span class="icone-cx" style="background:var(--roxo-cl);color:var(--roxo)">' + ico('faisca') + '</span>' +
-        '<b>Perguntar sobre ele</b><span>Conversar com o documento aberto</span></button>' +
     '</div>' +
-    '<div id="saidaPasso"></div>' +
   '</div>';
 
-  $('saidaAssist').innerHTML = '<div class="resposta">' +
+  return '<div class="resposta">' +
     (a.alerta ? '<div class="aviso" style="margin-bottom:14px">' + ico('alerta') +
       '<div><b>' + esc(a.alerta) + '</b></div></div>' : '') +
     '<span class="tag tag-roxo">' + esc(a.tipo_documento) + '</span>' +
@@ -2516,7 +2472,8 @@ function vistaGmail(){
       '</div></div>' +
       '<div style="padding:0 14px 10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">' +
         (st.email ? '<span class="li-s" style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(st.email) + '</span>' : '') +
-        '<button class="bt bt-ouro bt-mini" id="btNovoEmail" style="margin-left:auto;flex:none;white-space:nowrap">' + ico('mais') + 'Novo e-mail</button>' +
+        '<button class="bt bt-fino bt-mini" id="btAssinaturaGmail" title="Assinatura" style="margin-left:auto;flex:none">' + ico('caneta') + '</button>' +
+        '<button class="bt bt-ouro bt-mini" id="btNovoEmail" style="flex:none;white-space:nowrap">' + ico('mais') + 'Novo e-mail</button>' +
       '</div>' +
       '<div class="gmail-pastas">' + PASTAS.map(function(p){
         return '<button class="' + (pasta === p[0] ? 'ativa' : '') + '" data-pasta-gmail="' + p[0] + '">' + p[1] + '</button>';
@@ -2620,8 +2577,11 @@ function threadGmail(msgs){
       '<div class="escrever">' +
         '<label class="so-leitor" for="gmailTexto">Resposta</label>' +
         '<textarea id="gmailTexto" rows="2" placeholder="Escreva a resposta…"></textarea>' +
+        '<button class="bt-voz" id="btAnexoGmail" aria-label="Anexar arquivo" title="Anexar arquivo">' + ico('clipe') + '</button>' +
         '<button class="bt-enviar" id="btEnviaGmail" aria-label="Enviar">' + ico('enviar') + '</button>' +
       '</div>' +
+      '<input type="file" id="arqGmail" class="oculto" multiple>' +
+      '<div class="anexos" id="gmailAnexos"></div>' +
       '<p class="chat-dica">Responde pra ' + esc(ultima.enviada_por_mim ? (ultima.para||'') : (ultima.de||'')) + '</p>' +
       '<p class="erro" id="erroGmail"></p>' +
     '</div>' +
@@ -3019,7 +2979,15 @@ function garanteConversa(){
 
 function pergunta(){
   var cx = $('pergunta'), texto = cx.value.trim();
-  if(!texto || E.respondendo) return;
+  if(E.respondendo) return;
+  /* um campo só: com PDF anexado a IA lê o documento, sem PDF é conversa
+     (inclusive pedido de peça — a regra da minuta está no prompt dela) */
+  if(E.assistArquivo){
+    cx.value = ''; cx.style.height = 'auto';
+    mandaArquivo(texto);
+    return;
+  }
+  if(!texto) return;
   erroAssist('');
   cx.value = ''; cx.style.height = 'auto';
 
@@ -3178,12 +3146,20 @@ function ajustaAltura(cx){
   cx.style.height = Math.min(cx.scrollHeight, 170) + 'px';
 }
 
-function mandaArquivo(){
-  var f = $('arquivo').files[0], bt = $('btLer');
-  if(!f){ erroAssist('Escolha um PDF.'); return; }
+/* PDF anexado na conversa: sobe pro cofre, vira linha em `documentos` e
+   a análise volta como bolha da IA — é o que a aba "Ler documento" fazia
+   num formulário separado. */
+function mandaArquivo(texto){
+  var f = E.assistArquivo;
+  if(!f) return;
   if(f.size > 28 * 1024 * 1024){ erroAssist('Arquivo grande demais (máximo 28 MB).'); return; }
   erroAssist('');
-  ocupado(bt, 'Enviando…');
+
+  E.assistArquivo = null;
+  E.msgs.push({papel:'user', texto:texto || 'Leia este documento.', anexo:f.name});
+  E.msgs.push({papel:'assistant', texto:'', pensando:true});
+  E.respondendo = true;
+  pinta(); rolaFim();
 
   var caminho = Date.now() + '-' + f.name.replace(/[^\w.\-]+/g, '_');
 
@@ -3204,58 +3180,27 @@ function mandaArquivo(){
       method:'POST', headers:{'Prefer':'return=representation'},
       body: JSON.stringify({
         nome:f.name, caminho:caminho, tamanho:f.size,
-        caso_id: $('docCaso').value || null
+        caso_id: E.conversaCtx.caso || null
       })
     });
   })
   .then(function(linhas){
     var doc = linhas[0];
-    ocupado($('btLer'), 'Lendo…');
-    $('saidaAssist').innerHTML = '<div class="pensando">' +
-      'Lendo o documento inteiro. Peça longa pode levar mais de um minuto.</div>';
     return api('/functions/v1/advogado', {
       method:'POST', body: JSON.stringify({acao:'ler', documento_id:doc.id})
     }).then(function(r){
+      E.ultimaAnalise = r.analise;
       E.docAtual = doc.id;
-      pintaAnaliseDoc(r.analise, doc.id);
+      E.msgs[E.msgs.length - 1] = {papel:'assistant', analise:r.analise, docId:doc.id};
+      /* amarra a conversa ao documento: a próxima pergunta que ele
+         escrever já sai com o teor do PDF no contexto */
+      E.conversaCtx = {documento:doc.id, caso:doc.caso_id || null, nome:doc.nome, tipo:'documento'};
+      E.conversaId = null;
       return carrega();
     });
   })
-  .catch(function(e){ $('saidaAssist').innerHTML = ''; erroAssist(e.message); })
-  .then(function(){ livre($('btLer')); });
-}
-
-function minuta(){
-  var casoId = $('minutaCaso').value, bt = $('btMinutar');
-  if(!casoId){ erroAssist('Escolha o caso.'); return; }
-  erroAssist('');
-  ocupado(bt, 'Escrevendo…');
-  $('caixaMinuta').innerHTML = '<div class="bloco-cab"><h2>Minuta</h2></div>' +
-    '<div class="pensando" style="margin:18px">Montando a peça e conferindo os fundamentos. ' +
-    'Isso costuma levar de um a três minutos.</div>';
-
-  api('/functions/v1/advogado', {
-    method:'POST', body: JSON.stringify({acao:'minutar', caso_id:casoId, peca: $('tipoPeca').value})
-  })
-  .then(function(r){
-    var c = acha(casoId);
-    $('caixaMinuta').innerHTML =
-      '<div class="bloco-cab"><h2>Minuta</h2><div class="dir">' +
-        '<button class="bt bt-fino bt-mini" id="btCopiaMinuta">Copiar</button></div></div>' +
-      '<div class="bloco-corpo">' +
-        '<div class="aviso" style="margin-bottom:14px">' + ico('alerta') +
-          '<div><b>Minuta.</b> Os [COLCHETES] são dados que ela não tinha. ' +
-          'Confira os fundamentos e a seção do fim antes de protocolar.</div></div>' +
-        '<div class="peca" id="minutaTexto">' + esc(r.peca) + '</div>' +
-        pintaFontes(r.fontes) +
-      '</div>';
-    return carrega();
-  })
-  .catch(function(e){
-    $('caixaMinuta').innerHTML = '<div class="bloco-cab"><h2>Minuta</h2></div>' +
-      '<div class="bloco-corpo"><p class="erro">' + esc(e.message) + '</p></div>';
-  })
-  .then(function(){ livre($('btMinutar')); });
+  .catch(function(e){ E.msgs.pop(); erroAssist(e.message); })
+  .then(function(){ E.respondendo = false; pinta(); rolaFim(); });
 }
 
 function proximoPasso(qual, bt){
@@ -3264,61 +3209,36 @@ function proximoPasso(qual, bt){
   var doc = null;
   E.docs.forEach(function(x){ if(x.id === docId) doc = x; });
 
-  if(qual === 'conversar'){
+  /* Amarra a conversa ao documento — daí qualquer pergunta seguinte já
+     sai com o teor dele no contexto. */
+  if(qual === 'conversar' || qual === 'peca'){
     E.conversaCtx = {documento:docId, caso:(doc && doc.caso_id) || null,
                      nome:(doc && doc.nome) || 'documento', tipo:'documento'};
     E.conversaId = null; E.msgs = [];
-    E.assist = 'perguntar'; pinta();
-    return;
-  }
-
-  if(qual === 'peca'){
-    ocupado(bt, 'Escrevendo…');
-    $('saidaPasso').innerHTML = '<div class="pensando">Montando a peça a partir do que está ' +
-      'no documento. Costuma levar de um a três minutos.</div>';
-    api('/functions/v1/advogado', {
-      method:'POST',
-      body: JSON.stringify({acao:'minutar', documento_id:docId,
-                            caso_id:(doc && doc.caso_id) || null, peca:'peça de resposta'})
-    })
-    .then(function(r){
-      $('saidaPasso').innerHTML =
-        '<div class="aviso" style="margin:14px 0">' + ico('alerta') +
-          '<div><b>Minuta.</b> Os [COLCHETES] são dados que ela não tinha. ' +
-          'Confira a seção do fim antes de protocolar.</div></div>' +
-        '<div class="peca" id="minutaTexto">' + esc(r.peca) + '</div>' +
-        pintaFontes(r.fontes) +
-        '<div class="acoes" style="margin-top:11px">' +
-          '<button class="bt bt-fino bt-mini" id="btCopiaMinuta">Copiar</button></div>';
-    })
-    .catch(function(e){ $('saidaPasso').innerHTML = '<p class="erro">' + esc(e.message) + '</p>'; })
-    .then(function(){ livre(bt); });
+    pinta();
+    if(qual === 'peca'){
+      /* peça agora sai pela própria conversa, não por uma aba separada */
+      var cx = $('pergunta');
+      if(cx){ cx.value = 'Redija a peça que responde este documento.'; pergunta(); }
+    }
     return;
   }
 
   var para = qual === 'resumo-cliente' ? 'cliente' : 'escritorio';
+  var caso = doc && doc.caso_id ? acha(doc.caso_id) : null;
   ocupado(bt, 'Resumindo…');
-  $('saidaPasso').innerHTML = '<div class="pensando">Resumindo…</div>';
+  E.msgs.push({papel:'assistant', texto:'', pensando:true});
+  pinta(); rolaFim();
+
   api('/functions/v1/advogado', {
     method:'POST', body: JSON.stringify({acao:'resumir', documento_id:docId, para:para})
   })
   .then(function(r){
-    var caso = doc && doc.caso_id ? acha(doc.caso_id) : null;
-    $('saidaPasso').innerHTML =
-      '<div class="rascunho" id="rascunho" style="margin-top:14px">' + esc(r.resumo) + '</div>' +
-      '<div class="acoes" style="margin-top:11px">' +
-        '<button class="bt bt-fino bt-mini" id="btCopia">Copiar</button>' +
-        (para === 'cliente' && caso
-          ? '<a class="bt bt-ouro bt-mini" href="' + zap(caso.whatsapp, r.resumo) +
-            '" target="_blank" rel="noopener">' + ico('zap') + 'Mandar pra ' + esc(primeiro(caso.nome)) + '</a>'
-          : '') +
-      '</div>' +
-      (para === 'cliente'
-        ? '<p class="uso">Revise antes de enviar: sai em nome do escritório, e a OAB não ' +
-          'permite promessa de resultado nem menção a valores.</p>' : '');
+    E.msgs[E.msgs.length - 1] = {papel:'assistant', texto:r.resumo,
+      zapPara: (para === 'cliente' && caso) ? caso : null};
   })
-  .catch(function(e){ $('saidaPasso').innerHTML = '<p class="erro">' + esc(e.message) + '</p>'; })
-  .then(function(){ livre(bt); });
+  .catch(function(e){ E.msgs.pop(); erroAssist(e.message); })
+  .then(function(){ livre(bt); pinta(); rolaFim(); });
 }
 
 function agendaDaAnalise(indice, docId){
@@ -3763,6 +3683,7 @@ function sincronizaGmail(){
 }
 
 function abreThreadGmail(threadId){
+  if(E.gmail.abertaThread !== threadId) E.gmail.anexos = [];  // anexo é da resposta daquela conversa
   E.gmail.abertaThread = threadId;
   marcaGmailLida(threadId);
   pinta();
@@ -3783,13 +3704,17 @@ function carregaCorpoGmail(gmailId){
 }
 
 function modalNovoEmailGmail(){
+  E.gmail.anexosNovo = [];
   abreModal('Novo e-mail',
     '<div class="campo"><label for="neGmailPara">Para</label>' +
       '<input id="neGmailPara" type="email" placeholder="destinatario@exemplo.com" required></div>' +
     '<div class="campo"><label for="neGmailAssunto">Assunto</label>' +
       '<input id="neGmailAssunto"></div>' +
-    '<div class="campo" style="margin:0"><label for="neGmailTexto">Mensagem</label>' +
+    '<div class="campo"><label for="neGmailTexto">Mensagem</label>' +
       '<textarea id="neGmailTexto" style="min-height:160px"></textarea></div>' +
+    '<input type="file" id="arqGmailNovo" class="oculto" multiple>' +
+    '<button class="bt bt-fino bt-mini" id="btAnexoNovoEmail">' + ico('clipe') + 'Anexar arquivo</button>' +
+    '<div class="anexos" id="gmailAnexosNovo"></div>' +
     '<p class="erro" id="erroNovoEmail"></p>',
     '<button class="bt bt-fino" data-fecha="">Cancelar</button>' +
     '<button class="bt bt-ouro" id="btEnviaNovoEmail">Enviar</button>');
@@ -3801,10 +3726,74 @@ function enviaNovoEmailGmail(){
   if(!para || !texto){ erro.textContent = 'Preencha o destinatário e a mensagem.'; return; }
 
   var bt = $('btEnviaNovoEmail'); bt.disabled = true; erro.textContent = '';
-  gmailApi('enviar', {para: para, assunto: $('neGmailAssunto').value.trim(), texto: texto})
-    .then(function(){ return carrega(); })
+  gmailApi('enviar', {para: para, assunto: $('neGmailAssunto').value.trim(), texto: texto,
+                      anexos: E.gmail.anexosNovo})
+    .then(function(){ E.gmail.anexosNovo = []; return carrega(); })
     .then(function(){ fechaModal(); pinta(); })
     .catch(function(e){ bt.disabled = false; erro.textContent = e.message; });
+}
+
+/* ---------- anexos ---------- */
+/* O arquivo vira base64 aqui no navegador e viaja junto com o pedido de
+   envio; quem monta o MIME multipart é a Edge Function. Guardar o base64
+   no estado (e não confiar no <input type=file>) é o que faz o anexo
+   sobreviver a um repinte da tela. */
+function listaAnexoDe(idContainer){
+  return idContainer === 'gmailAnexosNovo' ? E.gmail.anexosNovo : E.gmail.anexos;
+}
+
+function tamanhoArq(b){
+  if(b === null || b === undefined) return '';
+  return b < 1048576 ? Math.max(1, Math.round(b / 1024)) + ' KB' : (b / 1048576).toFixed(1) + ' MB';
+}
+
+function pintaAnexos(idContainer){
+  var cx = $(idContainer); if(!cx) return;
+  cx.innerHTML = listaAnexoDe(idContainer).map(function(a, i){
+    return '<span class="anexo-chip"><b>' + esc(a.nome) + '</b>' +
+      '<span class="li-s">' + tamanhoArq(a.tamanho) + '</span>' +
+      '<button data-tira-anexo="' + idContainer + ':' + i + '" aria-label="Remover anexo">' + ico('x') + '</button></span>';
+  }).join('');
+}
+
+function leAnexos(arquivos, idContainer){
+  var lista = listaAnexoDe(idContainer), pendentes = arquivos.length;
+  if(!pendentes) return;
+  [].forEach.call(arquivos, function(f){
+    var leitor = new FileReader();
+    leitor.onload = function(){
+      lista.push({nome:f.name, tipo:f.type || 'application/octet-stream',
+                  dados:String(leitor.result).split(',')[1] || '', tamanho:f.size});
+      if(--pendentes === 0) pintaAnexos(idContainer);
+    };
+    leitor.onerror = function(){ if(--pendentes === 0) pintaAnexos(idContainer); };
+    leitor.readAsDataURL(f);
+  });
+}
+
+/* ---------- assinatura ---------- */
+function modalAssinaturaGmail(){
+  var atual = (E.gmail.status && E.gmail.status.assinatura) || '';
+  abreModal('Assinatura de e-mail',
+    '<p style="font-size:13px;color:var(--cinza);margin-bottom:14px">' +
+      'Vai no fim de todo e-mail enviado pelo painel — resposta e mensagem nova.</p>' +
+    '<div class="campo" style="margin:0"><label for="asGmailTexto">Assinatura</label>' +
+      '<textarea id="asGmailTexto" style="min-height:140px" placeholder="Gildemi Senna&#10;OAB/SP 417.105&#10;(11) 90000-0000">' +
+      esc(atual) + '</textarea></div>' +
+    '<p class="uso" style="margin:6px 0 0">Deixe em branco pra não usar assinatura nenhuma.</p>' +
+    '<p class="erro" id="erroAssinatura"></p>',
+    '<button class="bt bt-fino" data-fecha="">Cancelar</button>' +
+    '<button class="bt bt-ouro" id="btSalvaAssinatura">Salvar</button>');
+}
+
+function salvaAssinaturaGmail(){
+  var bt = $('btSalvaAssinatura'); bt.disabled = true;
+  gmailApi('salvar-assinatura', {assinatura: $('asGmailTexto').value})
+    .then(function(r){
+      if(E.gmail.status) E.gmail.status.assinatura = r.assinatura;
+      fechaModal(); pinta();
+    })
+    .catch(function(e){ bt.disabled = false; var el = $('erroAssinatura'); if(el) el.textContent = e.message; });
 }
 
 function enviaGmail(){
@@ -3819,9 +3808,11 @@ function enviaGmail(){
   var bt = $('btEnviaGmail'); bt.disabled = true;
   $('erroGmail').textContent = '';
 
-  gmailApi('enviar', {para: para, texto: texto, resposta_a: ultima.gmail_id})
+  gmailApi('enviar', {para: para, texto: texto, resposta_a: ultima.gmail_id,
+                      anexos: E.gmail.anexos})
     .then(function(){
       cx.value = '';
+      E.gmail.anexos = [];
       return carrega();
     })
     .then(function(){ bt.disabled = false; pinta();
@@ -4117,7 +4108,7 @@ document.addEventListener('click', function(e){
   if(rap){
     var a = rap.dataset.rapida;
     if(a === 'novo')   modalNovoCaso();
-    if(a === 'ler'){ E.assist = 'ler'; vai('assistente'); }
+    if(a === 'ler'){ vai('assistente'); var arq = $('arquivo'); if(arq) arq.click(); }
     if(a === 'varrer') varrerDiario(null);
     if(a === 'criticos'){ E.filtro = 'criticos'; E.modo = 'lista'; vai('esteira'); }
     if(a === 'triar'){
@@ -4130,9 +4121,6 @@ document.addEventListener('click', function(e){
 
   var fil = e.target.closest('[data-filtro]');
   if(fil){ E.filtro = fil.dataset.filtro || null; pinta(); return; }
-
-  var ab = e.target.closest('[data-assist]');
-  if(ab){ E.assist = ab.dataset.assist; pinta(); return; }
 
   var at = e.target.closest('[data-atalho]');
   if(at){
@@ -4151,11 +4139,19 @@ document.addEventListener('click', function(e){
   var pg = e.target.closest('[data-pasta-gmail]');
   if(pg){ E.gmail.pasta = pg.dataset.pastaGmail; E.gmail.abertaThread = null; pinta(); return; }
 
+  var ta = e.target.closest('[data-tira-anexo]');
+  if(ta){
+    var alvo = ta.dataset.tiraAnexo.split(':');
+    listaAnexoDe(alvo[0]).splice(parseInt(alvo[1], 10), 1);
+    pintaAnexos(alvo[0]);
+    return;
+  }
+
   var cg = e.target.closest('[data-abre-corpo-gmail]');
   if(cg){ carregaCorpoGmail(cg.dataset.abreCorpoGmail); return; }
 
   var cv = e.target.closest('[data-conversa]');
-  if(cv){ E.assist = 'perguntar'; abreConversa(cv.dataset.conversa); return; }
+  if(cv){ abreConversa(cv.dataset.conversa); return; }
 
   var pp = e.target.closest('[data-passo]');
   if(pp){ proximoPasso(pp.dataset.passo, pp); return; }
@@ -4167,7 +4163,13 @@ document.addEventListener('click', function(e){
   if(vd){
     var d = null;
     E.docs.forEach(function(x){ if(x.id === vd.dataset.documento) d = x; });
-    if(d && d.analise){ E.assist = 'ler'; pinta(); E.docAtual = d.id; pintaAnaliseDoc(d.analise, d.id); }
+    if(d && d.analise){
+      E.ultimaAnalise = d.analise; E.docAtual = d.id;
+      E.conversaCtx = {documento:d.id, caso:d.caso_id || null, nome:d.nome, tipo:'documento'};
+      E.conversaId = null;
+      E.msgs = [{papel:'assistant', analise:d.analise, docId:d.id}];
+      vai('assistente'); rolaFim();
+    }
     else if(d) alert('Esse documento ainda não foi lido.');
     return;
   }
@@ -4223,7 +4225,6 @@ document.addEventListener('click', function(e){
     E.processos.forEach(function(x){ if(x.id === pid) procIa = x; });
     E.conversaCtx = {processo:pid, nome:procIa ? (procIa.processo||'') : '', tipo:'processo'};
     E.conversaId = null; E.msgs = [];
-    E.assist = 'perguntar';
     vai('assistente');
     if(aip.dataset.atalhoProc){
       setTimeout(function(){
@@ -4283,9 +4284,16 @@ document.addEventListener('click', function(e){
     var cc = acha(E.casoId);
     E.conversaCtx = {caso:E.casoId, nome:cc ? cc.nome : '', tipo:'caso'};
     E.conversaId = null; E.msgs = [];
-    E.assist = 'perguntar'; vai('assistente');
+    vai('assistente');
   }
-  else if(id === 'btMinutarCaso'){   E.casoCtx = E.casoId; E.assist = 'minutar';   vai('assistente'); }
+  else if(id === 'btMinutarCaso'){
+    var cm = acha(E.casoId);
+    E.conversaCtx = {caso:E.casoId, nome:cm ? cm.nome : '', tipo:'caso'};
+    E.conversaId = null; E.msgs = [];
+    vai('assistente');
+    var cxm = $('pergunta');
+    if(cxm){ cxm.value = 'Minute a peça deste caso.'; ajustaAltura(cxm); cxm.focus(); }
+  }
   else if(id === 'btPerguntar')    pergunta();
   else if(id === 'btVoz')          alternaVoz();
   else if(id === 'btEnviaWpp')     enviaWpp();
@@ -4294,13 +4302,17 @@ document.addEventListener('click', function(e){
   else if(id === 'btEnviaGmail')      enviaGmail();
   else if(id === 'btNovoEmail')       modalNovoEmailGmail();
   else if(id === 'btEnviaNovoEmail')  enviaNovoEmailGmail();
+  else if(id === 'btAnexoGmail')      $('arqGmail').click();
+  else if(id === 'btAnexoNovoEmail')  $('arqGmailNovo').click();
+  else if(id === 'btAssinaturaGmail') modalAssinaturaGmail();
+  else if(id === 'btSalvaAssinatura') salvaAssinaturaGmail();
   else if(id === 'btSalvaEdicaoProcesso') salvaEdicaoProcesso(e.target.closest('button').dataset.processoId);
   else if(id === 'btSalvaContato') salvaContato();
   else if(id === 'btViraCaso')     viraCaso();
   else if(id === 'btCriaDoContato')criaDoContato();
   else if(id === 'btNovaConversa') novaConversa();
-  else if(id === 'btLer')       mandaArquivo();
-  else if(id === 'btMinutar')   minuta();
+  else if(id === 'btAnexoDoc')  $('arquivo').click();
+  else if(id === 'btTiraAnexoDoc'){ E.assistArquivo = null; pintaAnexoAssist(); }
   else if(id === 'btCopiaMinuta'){
     var mt = $('minutaTexto').textContent, bm = e.target.closest('button');
     if(navigator.clipboard) navigator.clipboard.writeText(mt);
@@ -4354,12 +4366,25 @@ document.addEventListener('keydown', function(e){
 });
 
 document.addEventListener('change', function(e){
+  if(e.target.id === 'arqGmail'){     leAnexos(e.target.files, 'gmailAnexos');     e.target.value = ''; return; }
+  if(e.target.id === 'arqGmailNovo'){ leAnexos(e.target.files, 'gmailAnexosNovo'); e.target.value = ''; return; }
   if(e.target.id === 'arquivo'){
-    var f = e.target.files[0], bt = $('btLer'), cx = $('solta');
-    if(bt) bt.disabled = !f;
-    if(cx && f) cx.querySelector('b').textContent = f.name;
+    E.assistArquivo = e.target.files[0] || null;
+    e.target.value = '';
+    pintaAnexoAssist();
   }
 });
+
+/* chip do PDF escolhido, ao lado do campo da conversa */
+function pintaAnexoAssist(){
+  var cx = $('assistAnexo'); if(!cx) return;
+  var f = E.assistArquivo;
+  cx.innerHTML = f
+    ? '<span class="anexo-chip"><b>' + esc(f.name) + '</b>' +
+      '<span class="li-s">' + tamanhoArq(f.size) + '</span>' +
+      '<button id="btTiraAnexoDoc" aria-label="Remover anexo">' + ico('x') + '</button></span>'
+    : '';
+}
 
 
 $('busca').addEventListener('input', function(){
