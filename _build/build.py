@@ -19,8 +19,8 @@ CAPAS  = os.path.join(RAIZ, '_material', 'capas')
 DADOS = {
     'ADV':     'Gildemi Sena',
     'OAB':     'OAB/SP 417.105',
-    'WPP':     '5511951063158',
-    'WPP_FMT': '(11) 95106-3158',
+    'WPP':     '5511966617309',
+    'WPP_FMT': '(11) 96661-7309',
     'END':     'R. Rio Branco, 133 — Centro, São Bernardo do Campo/SP',
     'CEP':     '09710-090',
     'INSTA':   'sena.sena.adv',
