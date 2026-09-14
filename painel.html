@@ -317,24 +317,12 @@ td .sb{font-size:12px;color:var(--cinza)}
 .assist-abas button:hover{background:var(--linha-2);color:var(--texto)}
 .assist-abas button[aria-pressed="true"]{background:var(--marinho);color:#fff;font-weight:600}
 
-.solta{display:grid;place-items:center;gap:5px;padding:26px 18px;margin-bottom:14px;
-  border:1.5px dashed #CFD5DE;border-radius:12px;cursor:pointer;text-align:center;
-  transition:border-color .14s,background .14s}
-.solta:hover{border-color:var(--ouro-2);background:#FFFDF7}
-.solta svg{width:26px;height:26px;stroke-width:1.6;color:var(--cinza-2)}
-.solta b{font-size:14px;font-weight:600;word-break:break-all}
-.solta span{font-size:12.5px;color:var(--cinza-2)}
 
 .atalhos{display:grid;gap:6px;margin-top:16px}
 .atalhos button{text-align:left;font-size:12.5px;color:var(--cinza);padding:8px 12px;
   border:1px solid var(--linha);border-radius:9px;line-height:1.4}
 .atalhos button:hover{border-color:var(--ouro-2);color:var(--texto);background:#FFFDF7}
 
-.pensando{font-size:13.5px;color:var(--cinza);padding:16px;background:var(--fundo);
-  border-radius:10px;margin-top:16px;line-height:1.5}
-.pensando::before{content:'';display:inline-block;width:12px;height:12px;margin-right:9px;
-  vertical-align:-1px;border:2px solid rgba(22,41,74,.2);border-top-color:var(--marinho);
-  border-radius:50%;animation:gira .7s linear infinite}
 
 .resposta{margin-top:16px;font-size:14px;line-height:1.62}
 .resposta p{margin-bottom:9px}
@@ -344,8 +332,6 @@ td .sb{font-size:12px;color:var(--cinza)}
 ul.fontes{list-style:none;display:grid;gap:5px;font-size:12.5px}
 ul.fontes a{color:var(--azul);text-decoration:underline;text-underline-offset:2px;
   overflow-wrap:anywhere}
-.peca{white-space:pre-wrap;font-size:13.5px;line-height:1.65;background:var(--fundo);
-  border:1px solid var(--linha);border-radius:10px;padding:18px;max-height:640px;overflow-y:auto}
 
 /* ---- chat ---- */
 .chat-grade{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,300px);gap:14px;align-items:start}
@@ -890,12 +876,12 @@ var E = {
   docs:[], conversas:[], msgs:[],
   conversaId:null, conversaCtx:{},
   casoCtx:null,         /* caso que ele estava vendo antes de perguntar */
-  ultimaAnalise:null, docAtual:null, assistArquivo:null,
+  ultimaAnalise:null, docAtual:null, assistArquivos:[],
   /* whatsapp */
   wpp:{sessao:null, caixa:[], msgs:[], abertaId:null, busca:'', editando:false},
   /* gmail */
   gmail:{status:null, caixa:[], abertaThread:null, busca:'', sincronizando:false, pasta:'inbox',
-         anexos:[], anexosNovo:[]}
+         anexos:[], anexosNovo:[], carregandoCorpo:null}
 };
 
 /* "lida" do gmail não vem do servidor (não pedimos permissão pra marcar
@@ -918,28 +904,87 @@ function acha(id){ for(var i=0;i<E.casos.length;i++) if(E.casos[i].id === id) re
 function tarefasDe(id){ return E.tarefas.filter(function(t){ return t.caso_id === id; }); }
 function movsDe(id){ return E.movs.filter(function(m){ return m.caso_id === id; }); }
 
+/* Colunas pedidas uma a uma, de propósito.
+   `select=*` aqui puxava o CORPO INTEIRO de 500 e-mails, o TEXTO inteiro
+   de 400 publicações e a ANÁLISE inteira de 100 documentos a cada
+   carregada — e carrega() roda a cada evento em tempo real, a cada 20s no
+   modo de reserva e a cada página do backfill do Gmail. Foi isso que
+   estourou a cota de tráfego do projeto. O conteúdo pesado agora só desce
+   quando o advogado abre o item (ver carregaCorpoThread, carregaTextoPubs
+   e carregaAnaliseDoc). */
+var COLS_PUB    = 'id_cnj,disponibilizada,tribunal,orgao,classe,tipo,processo,processo_num,link,partes,lida,caso_id,processo_id';
+var COLS_GMAIL  = 'id,gmail_id,thread_id,de,para,assunto,previa,recebida_em,enviada_por_mim,labels,caso_id';
+var COLS_DOC    = 'id,caso_id,criado_at,nome,caminho,tamanho,tipo,analise_at';
+
 function carrega(){
-  return Promise.all([
+  var pedidos = [
     api('/rest/v1/casos_com_prazo?select=*&order=criado_at.desc'),
     api('/rest/v1/movimentacoes?select=*&order=criado_at.desc&limit=300'),
     api('/rest/v1/tarefas?select=*&order=quando.asc&limit=500'),
-    api('/rest/v1/publicacoes?select=*&order=disponibilizada.desc&limit=400'),
+    api('/rest/v1/publicacoes?select=' + COLS_PUB + '&order=disponibilizada.desc&limit=400'),
     api('/rest/v1/processos?select=*&order=criado_at.desc'),
-    api('/rest/v1/documentos?select=*&order=criado_at.desc&limit=100'),
+    api('/rest/v1/documentos?select=' + COLS_DOC + '&order=criado_at.desc&limit=100'),
     api('/rest/v1/conversas?select=*&order=mexida_at.desc&limit=40'),
     api('/rest/v1/wpp_sessao?select=*&id=eq.1'),
     api('/rest/v1/wpp_caixa?select=*&order=ultima_at.desc&limit=200'),
-    api('/rest/v1/gmail_mensagens?select=*&order=recebida_em.desc&limit=500'),
-    api('/functions/v1/gmail', {method:'POST', body: JSON.stringify({acao:'status'})})
-      .catch(function(){ return {conectado:false}; })
-  ]).then(function(r){
+    api('/rest/v1/gmail_mensagens?select=' + COLS_GMAIL + '&order=recebida_em.desc&limit=200'),
+    /* status do Gmail é chamada de Edge Function: só na primeira carga.
+       Depois quem mantém isso em dia é a vigiaGmail(), que já roda na aba. */
+    E.gmail.status
+      ? Promise.resolve(E.gmail.status)
+      : api('/functions/v1/gmail', {method:'POST', body: JSON.stringify({acao:'status'})})
+          .catch(function(){ return {conectado:false}; })
+  ];
+
+  return Promise.all(pedidos).then(function(r){
     E.casos = r[0] || []; E.movs = r[1] || []; E.tarefas = r[2] || [];
     E.pubs  = r[3] || []; E.processos = r[4] || [];
     E.docs  = r[5] || []; E.conversas = r[6] || [];
     E.wpp.sessao = (r[7] || [])[0] || null;
     E.wpp.caixa  = r[8] || [];
-    E.gmail.caixa  = r[9] || [];
+    /* preserva o que já foi baixado sob demanda: recarregar a lista não
+       pode apagar o corpo do e-mail que está aberto na tela */
+    E.gmail.caixa  = juntaCorpos(r[9] || [], E.gmail.caixa);
     E.gmail.status = r[10] || {conectado:false};
+  });
+}
+
+/* Texto da publicação: pesado (1–2 KB por linha) e só aparece na aba
+   "Publicações" de um processo. Busca só as daquele processo, e só uma
+   vez — se já tem texto em memória, não repete a chamada. */
+function carregaTextoPubs(processoId){
+  if(!processoId) return Promise.resolve();
+  var sem = E.pubs.filter(function(p){ return p.processo_id === processoId && p.texto == null; });
+  if(!sem.length) return Promise.resolve();
+
+  return api('/rest/v1/publicacoes?select=id_cnj,texto&processo_id=eq.' + encodeURIComponent(processoId))
+    .then(function(linhas){
+      var porId = {};
+      (linhas || []).forEach(function(l){ porId[l.id_cnj] = l.texto; });
+      E.pubs.forEach(function(p){ if(porId[p.id_cnj] !== undefined) p.texto = porId[p.id_cnj]; });
+      pinta();
+    })
+    .catch(function(){ /* a aba mostra a publicação sem o texto; não trava a tela */ });
+}
+
+/* Mesma ideia pra análise do documento: só desce quando ele abre o doc. */
+function carregaAnaliseDoc(docId){
+  return api('/rest/v1/documentos?select=id,analise&id=eq.' + encodeURIComponent(docId))
+    .then(function(linhas){
+      var a = (linhas || [])[0];
+      if(a) E.docs.forEach(function(d){ if(d.id === docId) d.analise = a.analise; });
+      return a ? a.analise : null;
+    });
+}
+
+/* Reaproveita corpo/html que já tinham sido buscados pra thread aberta. */
+function juntaCorpos(novos, antigos){
+  var cache = {};
+  (antigos || []).forEach(function(m){ if(m.corpo != null) cache[m.gmail_id] = m; });
+  return novos.map(function(m){
+    var c = cache[m.gmail_id];
+    if(c){ m.corpo = c.corpo; m.html = c.html; }
+    return m;
   });
 }
 
@@ -2095,7 +2140,7 @@ function abaPerguntar(){
         '<div class="escrever">' +
           '<label class="so-leitor" for="pergunta">Sua mensagem</label>' +
           '<textarea id="pergunta" rows="1" placeholder="Pergunte, peça uma minuta, ou anexe um PDF…"></textarea>' +
-          '<input type="file" id="arquivo" accept="application/pdf" class="oculto">' +
+          '<input type="file" id="arquivo" accept="application/pdf" class="oculto" multiple>' +
           '<button class="bt-voz" id="btAnexoDoc" aria-label="Anexar PDF" title="Anexar um PDF">' +
             ico('clipe') + '</button>' +
           '<button class="bt-voz" id="btVoz" aria-label="Ditar" title="Ditar (fale em português)">' +
@@ -2132,7 +2177,7 @@ function abaPerguntar(){
             '<span class="icone-cx" style="background:var(--linha-2);color:var(--cinza)">' + ico('pasta') + '</span>' +
             '<span class="li-p"><span class="li-t">' + esc(d.nome) + '</span>' +
             '<span class="li-s">' + (caso ? esc(caso.nome) + ' · ' : '') +
-              (d.analise ? esc(d.tipo || 'lido') : 'não lido ainda') + '</span></span></button>';
+              (d.analise_at ? esc(d.tipo || 'lido') : 'não lido ainda') + '</span></span></button>';
         }).join('') : '<div class="vazio">' + ico('pasta') + 'Nenhum documento ainda.</div>') +
       '</div>' +
     '</div>' +
@@ -2568,7 +2613,9 @@ function threadGmail(msgs){
               ? (m.html
                   ? '<iframe class="gmail-corpo-html" sandbox="" srcdoc="' + esc(m.corpo) + '"></iframe>'
                   : '<div style="white-space:pre-wrap">' + esc(m.corpo) + '</div>')
-              : '<button class="bt bt-fino bt-mini" data-abre-corpo-gmail="' + esc(m.gmail_id) + '">Carregar o corpo do e-mail</button>') +
+              : (E.gmail.carregandoCorpo === m.thread_id
+                  ? '<span class="li-s"><span class="pontinhos"><i></i><i></i><i></i></span></span>'
+                  : '<button class="bt bt-fino bt-mini" data-abre-corpo-gmail="' + esc(m.gmail_id) + '">Carregar o corpo do e-mail</button>')) +
             '<span class="msg-hora">' + (m.recebida_em ? hora(m.recebida_em) + ' · ' + data(m.recebida_em) : '') + '</span>' +
           '</div></div>';
       }).join('') +
@@ -2982,7 +3029,7 @@ function pergunta(){
   if(E.respondendo) return;
   /* um campo só: com PDF anexado a IA lê o documento, sem PDF é conversa
      (inclusive pedido de peça — a regra da minuta está no prompt dela) */
-  if(E.assistArquivo){
+  if((E.assistArquivos || []).length){
     cx.value = ''; cx.style.height = 'auto';
     mandaArquivo(texto);
     return;
@@ -3150,34 +3197,51 @@ function ajustaAltura(cx){
    a análise volta como bolha da IA — é o que a aba "Ler documento" fazia
    num formulário separado. */
 function mandaArquivo(texto){
-  var f = E.assistArquivo;
-  if(!f) return;
-  if(f.size > 28 * 1024 * 1024){ erroAssist('Arquivo grande demais (máximo 28 MB).'); return; }
-  erroAssist('');
+  var fila = (E.assistArquivos || []).slice();
+  if(!fila.length) return;
+  var grande = fila.filter(function(f){ return f.size > 28 * 1024 * 1024; });
+  if(grande.length){ erroAssist("Arquivo grande demais (máximo 28 MB): " + grande[0].name); return; }
+  erroAssist("");
 
-  E.assistArquivo = null;
-  E.msgs.push({papel:'user', texto:texto || 'Leia este documento.', anexo:f.name});
-  E.msgs.push({papel:'assistant', texto:'', pensando:true});
+  E.assistArquivos = [];
+  E.msgs.push({papel:"user", texto:texto || (fila.length > 1 ? "Leia estes documentos." : "Leia este documento."),
+               anexo:fila.map(function(f){ return f.name; }).join(", ")});
   E.respondendo = true;
   pinta(); rolaFim();
 
-  var caminho = Date.now() + '-' + f.name.replace(/[^\w.\-]+/g, '_');
+  /* um de cada vez: cada PDF é uma leitura pesada da IA, e a análise de
+     cada um entra como uma bolha própria na conversa */
+  var passo = fila.reduce(function(antes, f){
+    return antes.then(function(){ return leUmDocumento(f); });
+  }, Promise.resolve());
+
+  passo
+    .catch(function(e){ erroAssist(e.message); })
+    .then(function(){ E.respondendo = false; return carrega(); })
+    .then(function(){ pinta(); rolaFim(); });
+}
+
+function leUmDocumento(f){
+  E.msgs.push({papel:"assistant", texto:"", pensando:true});
+  pinta(); rolaFim();
+
+  var caminho = Date.now() + "-" + f.name.replace(/[^w.-]+/g, "_");
 
   /* o arquivo vai pro cofre privado do Supabase; a IA lê de lá pelo
      servidor, então o PDF nunca passa pela chave da IA no navegador */
-  fetch(URL_SB + '/storage/v1/object/documentos/' + encodeURIComponent(caminho), {
-    method:'POST',
+  return fetch(URL_SB + "/storage/v1/object/documentos/" + encodeURIComponent(caminho), {
+    method:"POST",
     headers:{
-      'apikey': ANON,
-      'Authorization': 'Bearer ' + (sessao ? sessao.access_token : ''),
-      'Content-Type': f.type || 'application/pdf'
+      "apikey": ANON,
+      "Authorization": "Bearer " + (sessao ? sessao.access_token : ""),
+      "Content-Type": f.type || "application/pdf"
     },
     body: f
   })
-  .then(function(r){ if(!r.ok) throw new Error('não deu pra guardar o arquivo'); })
+  .then(function(r){ if(!r.ok) throw new Error("não deu pra guardar o arquivo"); })
   .then(function(){
-    return api('/rest/v1/documentos', {
-      method:'POST', headers:{'Prefer':'return=representation'},
+    return api("/rest/v1/documentos", {
+      method:"POST", headers:{"Prefer":"return=representation"},
       body: JSON.stringify({
         nome:f.name, caminho:caminho, tamanho:f.size,
         caso_id: E.conversaCtx.caso || null
@@ -3186,21 +3250,23 @@ function mandaArquivo(texto){
   })
   .then(function(linhas){
     var doc = linhas[0];
-    return api('/functions/v1/advogado', {
-      method:'POST', body: JSON.stringify({acao:'ler', documento_id:doc.id})
+    return api("/functions/v1/advogado", {
+      method:"POST", body: JSON.stringify({acao:"ler", documento_id:doc.id})
     }).then(function(r){
       E.ultimaAnalise = r.analise;
       E.docAtual = doc.id;
-      E.msgs[E.msgs.length - 1] = {papel:'assistant', analise:r.analise, docId:doc.id};
+      E.msgs[E.msgs.length - 1] = {papel:"assistant", analise:r.analise, docId:doc.id};
       /* amarra a conversa ao documento: a próxima pergunta que ele
          escrever já sai com o teor do PDF no contexto */
-      E.conversaCtx = {documento:doc.id, caso:doc.caso_id || null, nome:doc.nome, tipo:'documento'};
+      E.conversaCtx = {documento:doc.id, caso:doc.caso_id || null, nome:doc.nome, tipo:"documento"};
       E.conversaId = null;
-      return carrega();
+      pinta(); rolaFim();
     });
   })
-  .catch(function(e){ E.msgs.pop(); erroAssist(e.message); })
-  .then(function(){ E.respondendo = false; pinta(); rolaFim(); });
+  .catch(function(e){
+    E.msgs[E.msgs.length - 1] = {papel:"assistant", texto:"Não consegui ler " + f.name + ": " + e.message};
+    pinta();
+  });
 }
 
 function proximoPasso(qual, bt){
@@ -3242,7 +3308,12 @@ function proximoPasso(qual, bt){
 }
 
 function agendaDaAnalise(indice, docId){
-  var a = E.ultimaAnalise;
+  /* Pega a análise DAQUELE documento, não a última lida: desde que a
+     conversa aceita vários PDFs, clicar em "Agendar" numa análise antiga
+     agendava a data do documento mais recente. */
+  var a = null;
+  E.msgs.forEach(function(m){ if(m.analise && m.docId === docId) a = m.analise; });
+  if(!a) a = E.ultimaAnalise;
   if(!a || !a.datas || !a.datas[indice]) return;
   var d = a.datas[indice], doc = null;
   E.docs.forEach(function(x){ if(x.id === docId) doc = x; });
@@ -3688,10 +3759,33 @@ function abreThreadGmail(threadId){
   marcaGmailLida(threadId);
   pinta();
   var cx = $('gmailCorpo'); if(cx) cx.scrollTop = cx.scrollHeight;
-  // carrega o corpo de quem ainda não tem, sem esperar clique — a lista
-  // só guarda o snippet pra ser rápida, o corpo completo vem sob demanda.
-  E.gmail.caixa.filter(function(m){ return m.thread_id === threadId && m.corpo == null; })
-    .forEach(function(m){ carregaCorpoGmail(m.gmail_id); });
+
+  /* A lista não traz corpo (ver COLS_GMAIL). Ao abrir, busca o corpo só
+     dessa conversa — UMA chamada ao banco, não uma por mensagem. Só cai
+     no Gmail (Edge Function) se o corpo nunca tiver sido salvo. */
+  var faltando = E.gmail.caixa.filter(function(m){ return m.thread_id === threadId && m.corpo == null; });
+  if(!faltando.length) return;
+
+  E.gmail.carregandoCorpo = threadId;
+  api('/rest/v1/gmail_mensagens?select=gmail_id,corpo,html&thread_id=eq.' + encodeURIComponent(threadId))
+    .then(function(linhas){
+      var porId = {};
+      (linhas || []).forEach(function(l){ porId[l.gmail_id] = l; });
+      var semCorpo = [];
+      E.gmail.caixa.forEach(function(m){
+        if(m.thread_id !== threadId) return;
+        var l = porId[m.gmail_id];
+        if(l && l.corpo != null){ m.corpo = l.corpo; m.html = l.html; }
+        else if(m.corpo == null) semCorpo.push(m.gmail_id);
+      });
+      E.gmail.carregandoCorpo = null;
+      if(E.gmail.abertaThread === threadId) pinta();
+      semCorpo.forEach(carregaCorpoGmail);
+    })
+    .catch(function(e){
+      E.gmail.carregandoCorpo = null;
+      var el = $('erroGmail'); if(el) el.textContent = e.message;
+    });
 }
 
 function carregaCorpoGmail(gmailId){
@@ -4139,6 +4233,13 @@ document.addEventListener('click', function(e){
   var pg = e.target.closest('[data-pasta-gmail]');
   if(pg){ E.gmail.pasta = pg.dataset.pastaGmail; E.gmail.abertaThread = null; pinta(); return; }
 
+  var td = e.target.closest('[data-tira-doc]');
+  if(td){
+    E.assistArquivos.splice(parseInt(td.dataset.tiraDoc, 10), 1);
+    pintaAnexoAssist();
+    return;
+  }
+
   var ta = e.target.closest('[data-tira-anexo]');
   if(ta){
     var alvo = ta.dataset.tiraAnexo.split(':');
@@ -4163,12 +4264,18 @@ document.addEventListener('click', function(e){
   if(vd){
     var d = null;
     E.docs.forEach(function(x){ if(x.id === vd.dataset.documento) d = x; });
-    if(d && d.analise){
-      E.ultimaAnalise = d.analise; E.docAtual = d.id;
+    if(d && d.analise_at){
+      E.docAtual = d.id;
       E.conversaCtx = {documento:d.id, caso:d.caso_id || null, nome:d.nome, tipo:'documento'};
       E.conversaId = null;
-      E.msgs = [{papel:'assistant', analise:d.analise, docId:d.id}];
-      vai('assistente'); rolaFim();
+      E.msgs = [];
+      vai('assistente');
+      carregaAnaliseDoc(d.id).then(function(a){
+        if(!a) return;
+        E.ultimaAnalise = a;
+        E.msgs = [{papel:'assistant', analise:a, docId:d.id}];
+        pinta(); rolaFim();
+      });
     }
     else if(d) alert('Esse documento ainda não foi lido.');
     return;
@@ -4198,7 +4305,12 @@ document.addEventListener('click', function(e){
   if(oa){ E.obsAba = oa.dataset.obsAba; pinta(); return; }
 
   var pa = e.target.closest('[data-proc-aba]');
-  if(pa){ E.procAba = pa.dataset.procAba; pinta(); return; }
+  if(pa){
+    E.procAba = pa.dataset.procAba;
+    pinta();
+    if(E.procAba === 'publicacoes') carregaTextoPubs(E.processoAberto);
+    return;
+  }
 
   var fp = e.target.closest('[data-filtro-processo]');
   if(fp){ E.filtroProc = fp.dataset.filtroProcesso || null; pinta(); return; }
@@ -4312,7 +4424,6 @@ document.addEventListener('click', function(e){
   else if(id === 'btCriaDoContato')criaDoContato();
   else if(id === 'btNovaConversa') novaConversa();
   else if(id === 'btAnexoDoc')  $('arquivo').click();
-  else if(id === 'btTiraAnexoDoc'){ E.assistArquivo = null; pintaAnexoAssist(); }
   else if(id === 'btCopiaMinuta'){
     var mt = $('minutaTexto').textContent, bm = e.target.closest('button');
     if(navigator.clipboard) navigator.clipboard.writeText(mt);
@@ -4369,21 +4480,20 @@ document.addEventListener('change', function(e){
   if(e.target.id === 'arqGmail'){     leAnexos(e.target.files, 'gmailAnexos');     e.target.value = ''; return; }
   if(e.target.id === 'arqGmailNovo'){ leAnexos(e.target.files, 'gmailAnexosNovo'); e.target.value = ''; return; }
   if(e.target.id === 'arquivo'){
-    E.assistArquivo = e.target.files[0] || null;
+    E.assistArquivos = (E.assistArquivos || []).concat([].slice.call(e.target.files));
     e.target.value = '';
     pintaAnexoAssist();
   }
 });
 
-/* chip do PDF escolhido, ao lado do campo da conversa */
+/* chips dos PDFs escolhidos, ao lado do campo da conversa */
 function pintaAnexoAssist(){
   var cx = $('assistAnexo'); if(!cx) return;
-  var f = E.assistArquivo;
-  cx.innerHTML = f
-    ? '<span class="anexo-chip"><b>' + esc(f.name) + '</b>' +
+  cx.innerHTML = (E.assistArquivos || []).map(function(f, i){
+    return '<span class="anexo-chip"><b>' + esc(f.name) + '</b>' +
       '<span class="li-s">' + tamanhoArq(f.size) + '</span>' +
-      '<button id="btTiraAnexoDoc" aria-label="Remover anexo">' + ico('x') + '</button></span>'
-    : '';
+      '<button data-tira-doc="' + i + '" aria-label="Remover anexo">' + ico('x') + '</button></span>';
+  }).join('');
 }
 
 
