@@ -878,7 +878,7 @@ var E = {
   casoCtx:null,         /* caso que ele estava vendo antes de perguntar */
   ultimaAnalise:null, docAtual:null, assistArquivos:[],
   /* whatsapp */
-  wpp:{sessao:null, caixa:[], msgs:[], abertaId:null, busca:'', editando:false},
+  wpp:{conexao:null, caixa:[], msgs:[], abertaId:null, busca:'', editando:false},
   /* gmail */
   gmail:{status:null, caixa:[], abertaThread:null, busca:'', sincronizando:false, pasta:'inbox',
          anexos:[], anexosNovo:[], carregandoCorpo:null}
@@ -925,7 +925,10 @@ function carrega(){
     api('/rest/v1/processos?select=*&order=criado_at.desc'),
     api('/rest/v1/documentos?select=' + COLS_DOC + '&order=criado_at.desc&limit=100'),
     api('/rest/v1/conversas?select=*&order=mexida_at.desc&limit=40'),
-    api('/rest/v1/wpp_sessao?select=*&id=eq.1'),
+    E.wpp.conexao
+      ? Promise.resolve(E.wpp.conexao)
+      : api('/functions/v1/kapso', {method:'POST', body: JSON.stringify({acao:'status'})})
+          .catch(function(e){ return {conectado:false, motivo:e.message}; }),
     api('/rest/v1/wpp_caixa?select=*&order=ultima_at.desc&limit=200'),
     api('/rest/v1/gmail_mensagens?select=' + COLS_GMAIL + '&order=recebida_em.desc&limit=200'),
     /* status do Gmail é chamada de Edge Function: só na primeira carga.
@@ -940,7 +943,7 @@ function carrega(){
     E.casos = r[0] || []; E.movs = r[1] || []; E.tarefas = r[2] || [];
     E.pubs  = r[3] || []; E.processos = r[4] || [];
     E.docs  = r[5] || []; E.conversas = r[6] || [];
-    E.wpp.sessao = (r[7] || [])[0] || null;
+    E.wpp.conexao = r[7] || {conectado:false};
     E.wpp.caixa  = r[8] || [];
     /* preserva o que já foi baixado sob demanda: recarregar a lista não
        pode apagar o corpo do e-mail que está aberto na tela */
@@ -2312,9 +2315,10 @@ function htmlAnalise(a, docId){
    VISTA: WhatsApp
    =================================================================== */
 function vistaWhatsapp(){
-  var ses = E.wpp.sessao || {};
-
-  if(ses.estado !== 'conectado') return telaParear(ses);
+  /* Com a Cloud API não existe sessão pra cair nem QR pra escanear: ou o
+     número está conectado no Kapso, ou não está. */
+  var conexao = E.wpp.conexao || {};
+  if(!conexao.conectado && !conexao.modo_teste) return telaConectarWpp(conexao);
 
   var t = E.wpp.busca.trim().toLowerCase();
   var caixa = E.wpp.caixa.filter(function(c){
@@ -2331,7 +2335,10 @@ function vistaWhatsapp(){
     '<div class="bloco wpp-lista">' +
       '<div class="bloco-cab">' +
         '<h2>Conversas</h2>' +
-        '<div class="dir"><span class="tag tag-verde"><span class="ponto"></span>conectado</span></div>' +
+        '<div class="dir">' + (conexao.modo_teste
+          ? '<span class="tag tag-ambar" title="Número sandbox do Kapso — só conversa com números cadastrados como teste">' +
+            '<span class="ponto"></span>modo de teste</span>'
+          : '<span class="tag tag-verde"><span class="ponto"></span>conectado</span>') + '</div>' +
       '</div>' +
       '<div class="wpp-busca">' +
         '<label class="so-leitor" for="wppBusca">Buscar conversa</label>' +
@@ -2367,45 +2374,42 @@ function avatar(c){
   return '<span class="wpp-av wpp-av-txt">' + esc(iniciais(c.exibir)) + '</span>';
 }
 
-function telaParear(ses){
-  var erro = ses.erro
-    ? '<p class="erro" style="margin-bottom:6px">' + esc(ses.erro) + '</p>' : '';
+/* Sem QR Code: o número é conectado uma vez no painel do Kapso (fluxo de
+   coexistência, que mantém o WhatsApp Business funcionando no celular).
+   Aqui a tela só mostra em que pé está essa conexão. */
+function telaConectarWpp(conexao){
+  var motivo = conexao && conexao.motivo
+    ? '<p class="' + (conexao.sandbox ? 'uso' : 'erro') + '" style="margin-bottom:6px">' +
+      esc(conexao.motivo) + '</p>' : '';
 
-  var meio;
-  if(ses.estado === 'qr' && ses.qr){
-    meio =
-      '<img class="qr" src="' + esc(ses.qr) + '" alt="QR Code para conectar o WhatsApp" ' +
-        'width="320" height="320">' +
-      '<ol class="passos-qr">' +
-        '<li>Abra o WhatsApp no celular</li>' +
-        '<li>Toque em <b>Mais opções</b> › <b>Aparelhos conectados</b></li>' +
-        '<li>Toque em <b>Conectar aparelho</b></li>' +
-        '<li>Aponte a câmera para este código</li>' +
-      '</ol>' +
-      '<p class="uso">A tela abre sozinha assim que conectar.</p>';
-  } else {
-    meio =
-      '<div class="qr-espera">' +
-        '<span class="girando" style="border-color:rgba(22,41,74,.2);' +
-          'border-top-color:var(--marinho);width:22px;height:22px"></span>' +
-        '<b>Gerando o código</b>' +
-        '<span>Só um instante.</span>' +
-      '</div>';
-  }
-
-  /* Uma tela só, com o código no meio. O aviso sobre o número fica numa
-     linha porque quem escaneia é o o advogado — ele não esteve nas conversas
-     em que isso foi combinado. */
   return '<div class="parear">' +
     '<div class="bloco">' +
-      '<div class="bloco-cab" style="justify-content:center">' +
-        '<h2>Conectar o WhatsApp</h2>' +
+      '<div class="bloco-cab" style="justify-content:center"><h2>Conectar o WhatsApp</h2></div>' +
+      '<div class="bloco-corpo qr-cx">' + motivo +
+        '<div class="qr-espera" style="border:0;padding:18px 0">' +
+          ico('zap', ' style="width:46px;height:46px;color:var(--cinza-2)"') +
+          '<p class="uso" style="max-width:360px;margin-top:10px">' +
+            'A conexão é feita uma vez, no painel do Kapso, pelo fluxo ' +
+            '<b>"Connect a WhatsApp Business App"</b>. O número continua ' +
+            'funcionando normalmente no celular — as mensagens aparecem nos dois lados.' +
+          '</p>' +
+        '</div>' +
+        '<a class="bt bt-ouro" href="https://app.kapso.ai" target="_blank" rel="noopener">' +
+          'Abrir o Kapso' + '</a>' +
+        '<button class="bt bt-fino" id="btConfereWpp" style="margin-left:8px">Já conectei, conferir</button>' +
       '</div>' +
-      '<div class="bloco-corpo qr-cx">' + erro + meio + '</div>' +
       '<p class="nota-numero">' + ico('alerta') +
-        'Use o número do escritório, não o pessoal.</p>' +
+        'Não desinstale o WhatsApp Business do celular e abra ele pelo menos uma vez a cada 13 dias, ' +
+        'senão a Meta derruba a conexão.</p>' +
     '</div>' +
   '</div>';
+}
+
+function confereConexaoWpp(){
+  var bt = $('btConfereWpp'); if(bt) ocupado(bt, 'Conferindo…');
+  return api('/functions/v1/kapso', {method:'POST', body: JSON.stringify({acao:'status'})})
+    .then(function(r){ E.wpp.conexao = r; pinta(); })
+    .catch(function(e){ E.wpp.conexao = {conectado:false, motivo:e.message}; pinta(); });
 }
 
 function conversaWpp(c){
@@ -3363,7 +3367,6 @@ function tempoReal(){
           {event:'*',      schema:'public', table:'mensagens_wpp'},
           {event:'*',      schema:'public', table:'conversas_wpp'},
           {event:'*',      schema:'public', table:'contatos'},
-          {event:'*',      schema:'public', table:'wpp_sessao'},
           {event:'*',      schema:'public', table:'gmail_mensagens'},
           {event:'INSERT', schema:'public', table:'casos'},
           {event:'INSERT', schema:'public', table:'publicacoes'},
@@ -3449,17 +3452,6 @@ function digitando(){
                  a.type !== 'radio'));
 }
 
-var pintaCedo = null;
-function repintaLogo(){
-  if(pintaCedo) return;
-  /* junta rajadas de eventos numa pintura só */
-  pintaCedo = setTimeout(function(){
-    pintaCedo = null;
-    if(digitando()) return;
-    pinta();
-  }, 350);
-}
-
 function chegou(tabela, tipo, linha){
   /* mensagem de WhatsApp na conversa aberta entra na hora, sem recarregar
      tudo — é o caso em que meio segundo de atraso se nota */
@@ -3489,8 +3481,6 @@ function chegou(tabela, tipo, linha){
       avisaChegada(linha);
     }
   }
-
-  if(tabela === 'wpp_sessao'){ E.wpp.sessao = linha; repintaLogo(); }
 
   /* o resto muda contador e lista: relê e repinta, agrupado */
   if(agrupa) clearTimeout(agrupa);
@@ -3537,22 +3527,20 @@ document.addEventListener('visibilitychange', function(){
    ficaria parada no código velho. */
 var vigia = null;
 function vigiaSessaoWpp(){
-  var precisa = E.vista === 'whatsapp' &&
-                (!E.wpp.sessao || E.wpp.sessao.estado !== 'conectado');
+  /* Não existe mais QR expirando: isso aqui só cobre o intervalo entre
+     conectar o número no Kapso e a tela perceber. Confere devagar e para
+     sozinha assim que conecta. */
+  var precisa = E.vista === 'whatsapp' && (!E.wpp.conexao || !E.wpp.conexao.conectado);
   if(precisa && !vigia){
-    /* Roda mesmo com o websocket de pé. O canal pode subir e não trazer
-       nada (RLS mal configurado, por exemplo) — e aí a tela de QR ficaria
-       parada pra sempre. Só enquanto não pareia, e para sozinha depois. */
     vigia = setInterval(function(){
-      api('/rest/v1/wpp_sessao?select=*&id=eq.1').then(function(r){
-        var nova = (r || [])[0] || null, antes = E.wpp.sessao;
-        E.wpp.sessao = nova;
-        var mudou = !antes || !nova ||
-                    antes.estado !== nova.estado || antes.qr !== nova.qr;
-        if(nova && nova.estado === 'conectado') return carrega().then(pinta);
-        if(mudou) pinta();
-      }).catch(function(){});
-    }, 3000);
+      api('/functions/v1/kapso', {method:'POST', body: JSON.stringify({acao:'status'})})
+        .then(function(r){
+          var antes = E.wpp.conexao;
+          E.wpp.conexao = r;
+          if(r.conectado) return carrega().then(pinta);
+          if(!antes || antes.motivo !== r.motivo) pinta();
+        }).catch(function(){});
+    }, 15000);
   } else if(!precisa && vigia){
     clearInterval(vigia); vigia = null;
   }
@@ -3594,12 +3582,14 @@ function enviaWpp(){
   pinta();
   var c3 = $('wppCorpo'); if(c3) c3.scrollTop = c3.scrollHeight;
 
-  api('/rest/v1/wpp_fila', {
-    method:'POST', headers:{'Prefer':'return=minimal'},
-    body: JSON.stringify({telefone:aberta.telefone, texto:texto})
+  api('/functions/v1/kapso', {
+    method:'POST',
+    body: JSON.stringify({acao:'enviar', telefone:aberta.telefone, texto:texto})
   })
+  .then(function(){ return carrega(); })
+  .then(function(){ pinta(); var c4 = $('wppCorpo'); if(c4) c4.scrollTop = c4.scrollHeight; })
   .catch(function(e){
-    var el = $('erroWpp'); if(el) el.textContent = 'Não entrou na fila: ' + e.message;
+    var el = $('erroWpp'); if(el) el.textContent = 'Não deu pra enviar: ' + e.message;
   });
 }
 
@@ -4409,6 +4399,7 @@ document.addEventListener('click', function(e){
   else if(id === 'btPerguntar')    pergunta();
   else if(id === 'btVoz')          alternaVoz();
   else if(id === 'btEnviaWpp')     enviaWpp();
+  else if(id === 'btConfereWpp')   confereConexaoWpp();
   else if(id === 'btConectaGmail')   conectaGmail();
   else if(id === 'btSincronizaGmail') sincronizaGmail();
   else if(id === 'btEnviaGmail')      enviaGmail();
