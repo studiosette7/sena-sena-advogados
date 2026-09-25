@@ -14,6 +14,10 @@ index.html
 painel.html
 painel-demo.html
 
+# backups locais de build
+*.bak
+*.tmp
+
 # segredos e estado local
 supabase/migrations/*_agendamentos.sql
 supabase/.temp/
