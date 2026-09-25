@@ -474,7 +474,7 @@ var RESUMO_CLIENTE_FALSO = [
 'A empresa também fez uma proposta de acordo. Vou analisar se ela faz sentido',
 'diante do que você tem a receber e te retorno para conversarmos.',
 '',
-'Sena & Sena Advogados'
+'Escritório'
 ].join('\n');
 
 var MINUTA_FALSA = [
@@ -534,8 +534,8 @@ var MINUTA_FALSA = [
   'São Bernardo do Campo, [DATA].',
   '',
   '',
-  'GILDEMI SENA',
-  'OAB/SP 417.105',
+  'NOME DO ADVOGADO',
+  'OAB/UF 000.000',
   '',
   '',
   '════════════════════════════════════════',
@@ -765,7 +765,7 @@ window.fetch = function(url, op){
       setTimeout(function(){
         WPP_SESSAO.estado = 'conectado';
         WPP_SESSAO.qr = null;
-        WPP_SESSAO.numero = '5511951063158';
+        WPP_SESSAO.numero = '5511900000000';
         /* o Supabase publicaria este UPDATE; aqui o dublê publica igual */
         emitirTR('wpp_sessao', 'UPDATE', WPP_SESSAO);
       }, 7000);
@@ -1026,7 +1026,7 @@ document.addEventListener('DOMContentLoaded', function(){
   try{ localStorage.removeItem('sena_sessao'); }catch(e){}
 
   var e = document.getElementById('email'), s = document.getElementById('senha');
-  if(e && !e.value) e.value = 'demonstracao@senaesena.adv.br';
+  if(e && !e.value) e.value = 'demonstracao@escritorio.adv.br';
   if(s && !s.value) s.value = 'demonstracao';
 
   var nota = document.createElement('p');

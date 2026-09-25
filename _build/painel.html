@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex, nofollow">
-<title>Painel — {{ADV}}</title>
+<title>Painel — Gildemi Senna</title>
 <meta name="theme-color" content="#0F1E38">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='18' fill='%2316294A'/><text y='72' x='50' text-anchor='middle' font-size='58' font-family='Georgia,serif' fill='%23E0B959'>S</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -629,7 +629,7 @@ ul.itens li::before{content:'';position:absolute;left:1px;top:.6em;width:5px;hei
 <!-- ==================== LOGIN ==================== -->
 <div class="entrada" id="telaEntrada">
   <form class="cartao-entrada" id="formEntrada">
-    <img src="{{LOGO}}" alt="{{ADV}}">
+    <img src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 60'><rect width='200' height='60' fill='none'/><text x='100' y='40' text-anchor='middle' font-size='26' font-family='Georgia,serif' fill='%23E0B959'>GILDEMI SENNA</text></svg>" alt="Gildemi Senna">
     <div class="campo">
       <label for="email">E-mail</label>
       <input type="email" id="email" autocomplete="username" required>
@@ -646,7 +646,7 @@ ul.itens li::before{content:'';position:absolute;left:1px;top:.6em;width:5px;hei
 <!-- ==================== APP ==================== -->
 <div class="app oculto" id="app">
   <aside class="lateral" id="lateral">
-    <img src="{{LOGO}}" alt="{{ADV}}">
+    <img src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 60'><rect width='200' height='60' fill='none'/><text x='100' y='40' text-anchor='middle' font-size='26' font-family='Georgia,serif' fill='%23E0B959'>GILDEMI SENNA</text></svg>" alt="Gildemi Senna">
     <nav class="nav" id="nav">
       <a href="#painel"      data-v="painel"><svg viewBox="0 0 24 24"><use href="#i-painel"/></svg>Painel</a>
       <a href="#esteira"     data-v="esteira"><svg viewBox="0 0 24 24"><use href="#i-esteira"/></svg>Casos</a>
@@ -664,7 +664,7 @@ ul.itens li::before{content:'';position:absolute;left:1px;top:.6em;width:5px;hei
         <div class="eu-av" id="euAv">G</div>
         <div style="min-width:0">
           <div class="eu-n" id="euN">—</div>
-          <div class="eu-s">{{OAB}}</div>
+          <div class="eu-s">OAB/SP 417.105</div>
         </div>
       </div>
       <button class="bt-sair" id="btSair">Sair da conta</button>
@@ -697,17 +697,17 @@ ul.itens li::before{content:'';position:absolute;left:1px;top:.6em;width:5px;hei
 <div id="modais"></div>
 
 <!-- vazio no painel de verdade; no painel-demo.html entra o banco simulado -->
-{{DEMO}}
+
 
 <script>
 (function(){
 'use strict';
 
-var URL_SB = '{{SUPABASE_URL}}'.replace(/\/+$/, ''),
-    ANON   = '{{SUPABASE_ANON}}',
-    WPP    = '{{WPP}}',
-    ADV    = '{{ADV}}',
-    OAB_N  = '{{OAB}}';
+var URL_SB = 'https://dbugecyjjcfbmqeejupd.supabase.co'.replace(/\/+$/, ''),
+    ANON   = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRidWdlY3lqamNmYm1xZWVqdXBkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcyNjYxMzUsImV4cCI6MjEwMjg0MjEzNX0.zuq4yQW-pvjoIGVXg3DcHjqxOGVN3vLmZAPeaaXNngU',
+    WPP    = '5511900000000',
+    ADV    = 'Gildemi Senna',
+    OAB_N  = 'OAB/SP 417.105';
 
 /* ===================================================================
    Vocabulário do escritório. A ordem aqui é a ordem da esteira.

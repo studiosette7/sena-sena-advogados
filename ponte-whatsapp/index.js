@@ -26,6 +26,7 @@
      SUPABASE_SERVICE_ROLE_KEY
    ============================================================ */
 
+import fs from 'fs';
 import makeWASocket, {
   DisconnectReason,
   useMultiFileAuthState,
@@ -40,6 +41,18 @@ const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY,
 );
+
+// RESET_SESSION=true apaga a sessao salva e forca parear do zero — usar uma
+// vez pra sair de uma sessao com chaves de criptografia corrompidas (erros
+// tipo "Bad MAC" / "No session record" em cascata) e depois tirar a variavel.
+// A pasta ./sessao e um volume montado: apaga só o CONTEUDO, nunca a pasta
+// em si — tentar remover o ponto de montagem trava com EBUSY.
+if (process.env.RESET_SESSION === 'true' && fs.existsSync('./sessao')) {
+  for (const nome of fs.readdirSync('./sessao')) {
+    fs.rmSync(`./sessao/${nome}`, { recursive: true, force: true });
+  }
+  console.log('sessao apagada — vai pedir QR Code novo');
+}
 
 const log = pino({ level: 'warn' });
 
@@ -92,7 +105,7 @@ async function garanteConversa(jid, nomeWpp) {
     if (error) { console.error('contato:', error.message); return null; }
     contato = data;
   } else if (nomeWpp && contato.nome_wpp !== nomeWpp) {
-    // o nome do aparelho muda; o nome que o Gildemi editou nunca e sobrescrito
+    // o nome do aparelho muda; o nome que o o advogado editou nunca e sobrescrito
     await supabase.from('contatos').update({ nome_wpp: nomeWpp, jid }).eq('id', contato.id);
   }
 
@@ -120,9 +133,15 @@ async function conectar() {
     auth: state,
     logger: log,
     // marcar como online faz o WhatsApp parar de mandar notificacao pro
-    // celular do Gildemi; ele continua usando o aparelho normalmente
+    // celular do o advogado; ele continua usando o aparelho normalmente
     markOnlineOnConnect: false,
-    syncFullHistory: false,
+    // true: ao parear, o aparelho manda as conversas antigas tambem —
+    // e o que faz isto se comportar como o WhatsApp Web de verdade.
+    syncFullHistory: true,
+    // sem isso o WhatsApp reenvia sem parar uma mensagem que falhou ao
+    // decifrar, o que produz a enxurrada de erro "Bad MAC"/"No session
+    // record" vista nos logs. Devolver null admite a falha e corta o loop.
+    getMessage: async () => undefined,
   });
 
   sock.ev.on('creds.update', saveCreds);
@@ -161,47 +180,130 @@ async function conectar() {
     }
   });
 
+  /* ---------- grava uma mensagem (vem tanto ao vivo quanto do historico) ---------- */
+  async function gravaMensagem(m, ehHistorico) {
+    const jid = m.key?.remoteJid;
+    if (!ehPessoa(jid)) return;
+
+    const conteudo = textoDaMensagem(m);
+    if (!conteudo) return;
+
+    const conversaId = await garanteConversa(jid, m.pushName);
+    if (!conversaId) return;
+
+    const deMim = !!m.key.fromMe;
+    const quando = m.messageTimestamp
+      ? new Date(Number(m.messageTimestamp) * 1000).toISOString()
+      : new Date().toISOString();
+
+    // id_wpp e unico: se a mesma mensagem chegar duas vezes, nao duplica
+    const { error } = await supabase.from('mensagens_wpp').upsert({
+      conversa_id: conversaId,
+      id_wpp: m.key.id,
+      de_mim: deMim,
+      tipo: conteudo.tipo,
+      texto: conteudo.texto,
+      entregue: true,
+      criado_at: quando,
+    }, { onConflict: 'id_wpp', ignoreDuplicates: true });
+
+    if (error) { console.error('mensagem:', error.message); return; }
+
+    const previa = conteudo.texto.slice(0, 120);
+
+    if (ehHistorico) {
+      // o historico chega fora de ordem — so avanca a previa se essa
+      // mensagem for realmente mais nova que a que a conversa ja tem
+      const { data: atual } = await supabase
+        .from('conversas_wpp').select('ultima_at').eq('id', conversaId).single();
+      if (!atual?.ultima_at || quando > atual.ultima_at) {
+        await supabase.from('conversas_wpp').update({
+          ultima_at: quando, ultima_previa: (deMim ? 'Você: ' : '') + previa,
+        }).eq('id', conversaId);
+      }
+    } else {
+      const { data: atual } = await supabase
+        .from('conversas_wpp').select('nao_lidas').eq('id', conversaId).single();
+      await supabase.from('conversas_wpp').update({
+        ultima_at: quando,
+        ultima_previa: (deMim ? 'Você: ' : '') + previa,
+        nao_lidas: deMim ? 0 : (atual?.nao_lidas ?? 0) + 1,
+      }).eq('id', conversaId);
+    }
+  }
+
   /* ---------- mensagens que chegam ---------- */
   sock.ev.on('messages.upsert', async ({ messages, type }) => {
     if (type !== 'notify') return;
+    for (const m of messages) await gravaMensagem(m, false);
+  });
 
+  /* ---------- historico (chega ao parear, com syncFullHistory ligado) ----------
+     Pode vir com milhares de mensagens de uma vez — gravar uma a uma (varias
+     idas ao banco por mensagem) levaria horas. Agrupa por conversa e manda
+     em lote: poucas dezenas de chamadas no total, nao milhares. */
+  sock.ev.on('messaging-history.set', async ({ chats, contacts, messages, syncType }) => {
+    console.log('histórico:', messages.length, 'mensagens,', chats.length, 'conversas, tipo', syncType);
+
+    const linhasContatos = (contacts ?? [])
+      .filter((c) => ehPessoa(c.id))
+      .map((c) => ({
+        telefone: soDigitos(c.id), jid: c.id,
+        nome_wpp: c.name || c.notify || c.verifiedName || null,
+      }))
+      .filter((c) => c.telefone.length >= 10);
+    if (linhasContatos.length) {
+      // ignoreDuplicates: contato que ja existe mantem o nome que o
+      // advogado editou
+      const { error } = await supabase.from('contatos')
+        .upsert(linhasContatos, { onConflict: 'telefone', ignoreDuplicates: true });
+      if (error) console.error('contatos do histórico:', error.message);
+    }
+
+    const porJid = new Map();
     for (const m of messages) {
       const jid = m.key?.remoteJid;
       if (!ehPessoa(jid)) continue;
-
       const conteudo = textoDaMensagem(m);
       if (!conteudo) continue;
+      if (!porJid.has(jid)) porJid.set(jid, []);
+      porJid.get(jid).push({ m, conteudo });
+    }
 
-      const conversaId = await garanteConversa(jid, m.pushName);
+    let gravadas = 0;
+    for (const [jid, itens] of porJid) {
+      const ultimoPushName = itens[itens.length - 1].m.pushName;
+      const conversaId = await garanteConversa(jid, ultimoPushName);
       if (!conversaId) continue;
 
-      const deMim = !!m.key.fromMe;
-
-      // id_wpp e unico: se a mesma mensagem chegar duas vezes, nao duplica
-      const { error } = await supabase.from('mensagens_wpp').upsert({
+      const linhas = itens.map(({ m, conteudo }) => ({
         conversa_id: conversaId,
         id_wpp: m.key.id,
-        de_mim: deMim,
+        de_mim: !!m.key.fromMe,
         tipo: conteudo.tipo,
         texto: conteudo.texto,
         entregue: true,
         criado_at: m.messageTimestamp
           ? new Date(Number(m.messageTimestamp) * 1000).toISOString()
           : new Date().toISOString(),
-      }, { onConflict: 'id_wpp', ignoreDuplicates: true });
+      }));
 
-      if (error) { console.error('mensagem:', error.message); continue; }
+      // em blocos de 500 pra nao estourar o tamanho da requisicao
+      for (let i = 0; i < linhas.length; i += 500) {
+        const bloco = linhas.slice(i, i + 500);
+        const { error } = await supabase.from('mensagens_wpp')
+          .upsert(bloco, { onConflict: 'id_wpp', ignoreDuplicates: true });
+        if (error) console.error('mensagens do histórico:', error.message);
+        else gravadas += bloco.length;
+      }
 
-      const previa = conteudo.texto.slice(0, 120);
-      const { data: atual } = await supabase
-        .from('conversas_wpp').select('nao_lidas').eq('id', conversaId).single();
-
+      const maisRecente = linhas.reduce((a, b) => (b.criado_at > a.criado_at ? b : a));
       await supabase.from('conversas_wpp').update({
-        ultima_at: new Date().toISOString(),
-        ultima_previa: (deMim ? 'Você: ' : '') + previa,
-        nao_lidas: deMim ? 0 : (atual?.nao_lidas ?? 0) + 1,
+        ultima_at: maisRecente.criado_at,
+        ultima_previa: (maisRecente.de_mim ? 'Você: ' : '') + maisRecente.texto.slice(0, 120),
       }).eq('id', conversaId);
     }
+    console.log(gravadas, 'mensagens do histórico gravadas em', porJid.size, 'conversas');
   });
 
   /* ---------- fila de saida ---------- */

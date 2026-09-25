@@ -5,19 +5,20 @@
 // devolve uma análise preliminar: viabilidade, o que pedir de documento,
 // o que ainda falta perguntar e um rascunho de resposta pro WhatsApp.
 //
-// Roda no servidor (Deno). A chave da Anthropic é secret do Supabase e
-// nunca chega no navegador. Exige usuário logado — o público não chama isso.
+// Roda no servidor (Deno). A chave do Gemini é secret do Supabase e nunca
+// chega no navegador. Exige usuário logado — o público não chama isso.
 //
+// Fornecedor: Google Gemini (gemini-2.5-flash), tier gratuito da API.
 // Deploy:  npx supabase functions deploy triagem
-// Segredo: npx supabase secrets set ANTHROPIC_API_KEY=sk-ant-...
+// Segredo: npx supabase secrets set GEMINI_API_KEY=AIza...
 // ============================================================
 
-import Anthropic from "npm:@anthropic-ai/sdk@0.69.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { GEMINI, semAdditionalProperties, comRetentativa } from "../_shared/gemini.ts";
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, content-type",
+  "Access-Control-Allow-Headers": "authorization, apikey, content-type",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
@@ -27,10 +28,7 @@ const json = (body: unknown, status = 200) =>
     headers: { ...CORS, "content-type": "application/json" },
   });
 
-// ---------- o formato exato que a IA tem que devolver ----------
-// Structured outputs: a API garante que a resposta valida contra este schema,
-// então o painel nunca recebe JSON quebrado e não precisa de try/catch de parse.
-const SCHEMA = {
+const SCHEMA = semAdditionalProperties({
   type: "object",
   properties: {
     viabilidade: {
@@ -82,13 +80,11 @@ const SCHEMA = {
     "documentos_pedir", "perguntas_fazer", "resposta_whatsapp", "urgencia",
   ],
   additionalProperties: false,
-};
+});
 
 // ---------- instruções ----------
-// Fica estável de propósito: assim o prompt caching funciona e as chamadas
-// seguintes leem o cache em vez de reprocessar tudo.
 const SISTEMA = `
-Você assessora Gildemi Sena, advogado (OAB/SP 417.105) que atua em Direito do
+Você assessora um advogado (OAB/UF 000.000) que atua em Direito do
 Trabalho e Previdenciário no ABC Paulista. Ele é sempre o polo ativo: processa
 empregador e processa o INSS.
 
@@ -184,56 +180,56 @@ Deno.serve(async (req) => {
   if (erroCaso || !caso) return json({ erro: "caso não encontrado" }, 404);
 
   // ---------- 3) chama a IA ----------
-  const chave = Deno.env.get("ANTHROPIC_API_KEY");
-  if (!chave) return json({ erro: "ANTHROPIC_API_KEY não configurada" }, 500);
+  const chave = Deno.env.get("GEMINI_API_KEY");
+  if (!chave) return json({ erro: "GEMINI_API_KEY não configurada" }, 500);
 
-  const anthropic = new Anthropic({ apiKey: chave });
-
-  let resposta;
+  let resposta: any;
   try {
-    resposta = await anthropic.beta.messages.create({
-      model: "claude-opus-5",
-      // Folgado de propósito: no Opus 5 o raciocínio vem ligado por padrão e
-      // divide o teto de max_tokens com o texto da resposta.
-      max_tokens: 8000,
-      // Se o classificador recusar, a API reprocessa sozinha noutro modelo em
-      // vez de devolver resposta vazia.
-      betas: ["server-side-fallback-2026-07-01"],
-      fallbacks: "default",
-      system: [{
-        type: "text",
-        text: SISTEMA,
-        // As instruções não mudam entre chamadas: cacheadas, as próximas
-        // triagens leem por ~10% do preço de entrada.
-        cache_control: { type: "ephemeral" },
-      }],
-      output_config: { format: { type: "json_schema", schema: SCHEMA } },
-      messages: [{
-        role: "user",
-        content: `Faça a triagem desta ficha:\n\n${fichaEmTexto(caso)}`,
-      }],
-      // `fallbacks` ainda não está nos tipos publicados do SDK.
-    } as any);
+    const chama = () => fetch(`${GEMINI}:generateContent?key=${chave}`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        system_instruction: { parts: [{ text: SISTEMA }] },
+        contents: [{
+          role: "user",
+          parts: [{ text: `Faça a triagem desta ficha:\n\n${fichaEmTexto(caso)}` }],
+        }],
+        generationConfig: {
+          maxOutputTokens: 8000,
+          responseMimeType: "application/json",
+          responseSchema: SCHEMA,
+        },
+      }),
+    });
+    // o tier grátis devolve 503 (sobrecarga) de vez em quando — tenta 1x de novo
+    const r = await comRetentativa(chama, (resp) => resp.status === 503);
+    const j = await r.json();
+    if (!r.ok) {
+      const status = j?.error?.status ?? "";
+      const msg = j?.error?.message ?? "";
+      const amigavel = status === "RESOURCE_EXHAUSTED" || /quota/i.test(msg)
+        ? "A cota diária gratuita da IA acabou por hoje. Volta a funcionar amanhã."
+        : (msg || `Gemini respondeu ${r.status}`);
+      throw new Error(amigavel);
+    }
+    resposta = j;
   } catch (e) {
-    return json({ erro: "falha ao chamar a IA", detalhe: String(e) }, 502);
+    return json({ erro: e instanceof Error ? e.message : "falha ao chamar a IA" }, 502);
   }
 
-  // Recusa do classificador vem como HTTP 200 com content vazio — precisa
-  // ser checada antes de ler o conteúdo, senão quebra em content[0].
-  if (resposta.stop_reason === "refusal") {
-    return json({
-      erro: "a IA recusou analisar esse caso",
-      categoria: resposta.stop_details?.category ?? null,
-    }, 422);
+  const cand = resposta.candidates?.[0];
+  const motivo = cand?.finishReason;
+  if (motivo === "SAFETY" || motivo === "PROHIBITED_CONTENT" || motivo === "RECITATION") {
+    return json({ erro: "a IA recusou analisar esse caso" }, 422);
   }
-  if (resposta.stop_reason === "max_tokens") {
+  if (motivo === "MAX_TOKENS") {
     return json({ erro: "análise ficou incompleta (max_tokens)" }, 502);
   }
 
-  const bloco = resposta.content.find((b: any) => b.type === "text");
-  if (!bloco) return json({ erro: "resposta da IA sem texto" }, 502);
+  const bruto = cand?.content?.parts?.[0]?.text;
+  if (!bruto) return json({ erro: "resposta da IA sem texto" }, 502);
 
-  const analise = JSON.parse((bloco as any).text);
+  const analise = JSON.parse(bruto);
 
   // ---------- 4) grava no caso ----------
   const { error: erroGravar } = await supabase
@@ -245,14 +241,13 @@ Deno.serve(async (req) => {
     return json({ erro: "análise feita, mas falhou ao gravar", detalhe: erroGravar.message }, 500);
   }
 
+  const u = resposta.usageMetadata ?? {};
   return json({
     ok: true,
     analise,
     uso: {
-      entrada: resposta.usage.input_tokens,
-      saida: resposta.usage.output_tokens,
-      cache_lido: resposta.usage.cache_read_input_tokens ?? 0,
-      cache_escrito: resposta.usage.cache_creation_input_tokens ?? 0,
+      entrada: u.promptTokenCount ?? 0,
+      saida: u.candidatesTokenCount ?? 0,
     },
   });
 });

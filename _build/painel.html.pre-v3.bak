@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex, nofollow">
-<title>Painel — {{ADV}}</title>
+<title>Painel — Gildemi Senna</title>
 <meta name="theme-color" content="#0F1E38">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='18' fill='%2316294A'/><text y='72' x='50' text-anchor='middle' font-size='58' font-family='Georgia,serif' fill='%23E0B959'>S</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -317,12 +317,24 @@ td .sb{font-size:12px;color:var(--cinza)}
 .assist-abas button:hover{background:var(--linha-2);color:var(--texto)}
 .assist-abas button[aria-pressed="true"]{background:var(--marinho);color:#fff;font-weight:600}
 
+.solta{display:grid;place-items:center;gap:5px;padding:26px 18px;margin-bottom:14px;
+  border:1.5px dashed #CFD5DE;border-radius:12px;cursor:pointer;text-align:center;
+  transition:border-color .14s,background .14s}
+.solta:hover{border-color:var(--ouro-2);background:#FFFDF7}
+.solta svg{width:26px;height:26px;stroke-width:1.6;color:var(--cinza-2)}
+.solta b{font-size:14px;font-weight:600;word-break:break-all}
+.solta span{font-size:12.5px;color:var(--cinza-2)}
 
 .atalhos{display:grid;gap:6px;margin-top:16px}
 .atalhos button{text-align:left;font-size:12.5px;color:var(--cinza);padding:8px 12px;
   border:1px solid var(--linha);border-radius:9px;line-height:1.4}
 .atalhos button:hover{border-color:var(--ouro-2);color:var(--texto);background:#FFFDF7}
 
+.pensando{font-size:13.5px;color:var(--cinza);padding:16px;background:var(--fundo);
+  border-radius:10px;margin-top:16px;line-height:1.5}
+.pensando::before{content:'';display:inline-block;width:12px;height:12px;margin-right:9px;
+  vertical-align:-1px;border:2px solid rgba(22,41,74,.2);border-top-color:var(--marinho);
+  border-radius:50%;animation:gira .7s linear infinite}
 
 .resposta{margin-top:16px;font-size:14px;line-height:1.62}
 .resposta p{margin-bottom:9px}
@@ -332,6 +344,8 @@ td .sb{font-size:12px;color:var(--cinza)}
 ul.fontes{list-style:none;display:grid;gap:5px;font-size:12.5px}
 ul.fontes a{color:var(--azul);text-decoration:underline;text-underline-offset:2px;
   overflow-wrap:anywhere}
+.peca{white-space:pre-wrap;font-size:13.5px;line-height:1.65;background:var(--fundo);
+  border:1px solid var(--linha);border-radius:10px;padding:18px;max-height:640px;overflow-y:auto}
 
 /* ---- chat ---- */
 .chat-grade{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,300px);gap:14px;align-items:start}
@@ -388,15 +402,6 @@ ul.fontes a{color:var(--azul);text-decoration:underline;text-underline-offset:2p
 .bt-enviar{background:var(--ouro);color:#20180A}
 .bt-enviar:hover{filter:brightness(1.08)}
 .chat-dica{font-size:11.5px;color:var(--cinza-2);margin-top:7px;text-align:center}
-.anexos{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
-.anexos:empty{margin-top:0}
-.anexo-chip{display:inline-flex;align-items:center;gap:6px;max-width:100%;
-  background:var(--linha-2);border:1px solid var(--linha);border-radius:8px;
-  padding:4px 6px 4px 9px;font-size:12.5px}
-.anexo-chip b{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:210px}
-.anexo-chip button{display:grid;place-items:center;width:18px;height:18px;border-radius:5px;color:var(--cinza)}
-.anexo-chip button:hover{background:var(--linha);color:var(--texto)}
-.anexo-chip button svg{width:12px;height:12px;stroke-width:2.4}
 .linha-item.aberta{background:var(--linha-2)}
 
 /* ---- próximo passo depois de ler ---- */
@@ -422,9 +427,6 @@ ul.fontes a{color:var(--azul);text-decoration:underline;text-underline-offset:2p
 .wpp-grade{display:grid;grid-template-columns:minmax(0,330px) minmax(0,1fr) minmax(0,310px);
   gap:14px;align-items:start}
 .wpp-grade>*{min-width:0}
-.gmail-grade{display:grid;grid-template-columns:minmax(0,360px) minmax(0,1fr);gap:14px;align-items:start}
-.gmail-grade>*{min-width:0}
-@media (max-width:760px){.gmail-grade{grid-template-columns:1fr}}
 .wpp-lista,.wpp-chat{height:calc(100vh - 190px);min-height:480px;display:flex;flex-direction:column}
 .wpp-lista .bloco-cab{flex:none}
 .wpp-busca{padding:0 14px 12px;flex:none}
@@ -446,12 +448,6 @@ ul.fontes a{color:var(--azul);text-decoration:underline;text-underline-offset:2p
 .msg-eu .wpp-balao{background:#DCF3D8;color:var(--texto);border:1px solid #C6E7C0;
   white-space:pre-wrap}
 .msg-ia .wpp-balao{white-space:pre-wrap}
-.gmail-corpo-html{width:100%;min-height:220px;border:0;background:#fff;border-radius:8px}
-.gmail-pastas{display:flex;gap:4px;padding:0 14px 12px;flex:none}
-.gmail-pastas button{border:0;background:none;padding:5px 11px;border-radius:99px;font-size:12.5px;
-  font-weight:600;color:var(--cinza);cursor:pointer}
-.gmail-pastas button:hover{background:var(--linha-2)}
-.gmail-pastas button.ativa{background:var(--marinho);color:#fff}
 .msg-hora{position:absolute;right:11px;bottom:5px;font-size:10.5px;opacity:.55}
 /* no WhatsApp a bolha de quem chega nao tem avatar de robo */
 .wpp-chat .msg-ia .msg-av{display:none}
@@ -620,16 +616,12 @@ ul.itens li::before{content:'';position:absolute;left:1px;top:.6em;width:5px;hei
 <g id="i-enviar" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h15M13 6l6 6-6 6"/></g>
 <g id="i-parar" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="6" width="12" height="12" rx="2"/></g>
 <g id="i-entrada" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h5l2 3h4l2-3h5"/><path d="M5.5 5h13l2.5 7v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6z"/></g>
-<g id="i-olho" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.7-7 10-7 10 7 10 7-3.7 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></g>
-<g id="i-email" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3.5 6.5l8.5 7 8.5-7"/></g>
-<g id="i-clipe" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11.5l-8 8a5 5 0 01-7-7l8.5-8.5a3.5 3.5 0 015 5L10 17.5a2 2 0 01-3-3l7.5-7.5"/></g>
-<g id="i-caneta" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4l10-10a2.8 2.8 0 00-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></g>
 </defs></svg>
 
 <!-- ==================== LOGIN ==================== -->
 <div class="entrada" id="telaEntrada">
   <form class="cartao-entrada" id="formEntrada">
-    <img src="{{LOGO}}" alt="{{ADV}}">
+    <img src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 60'><rect width='200' height='60' fill='none'/><text x='100' y='40' text-anchor='middle' font-size='26' font-family='Georgia,serif' fill='%23E0B959'>GILDEMI SENNA</text></svg>" alt="Gildemi Senna">
     <div class="campo">
       <label for="email">E-mail</label>
       <input type="email" id="email" autocomplete="username" required>
@@ -646,25 +638,23 @@ ul.itens li::before{content:'';position:absolute;left:1px;top:.6em;width:5px;hei
 <!-- ==================== APP ==================== -->
 <div class="app oculto" id="app">
   <aside class="lateral" id="lateral">
-    <img src="{{LOGO}}" alt="{{ADV}}">
+    <img src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 60'><rect width='200' height='60' fill='none'/><text x='100' y='40' text-anchor='middle' font-size='26' font-family='Georgia,serif' fill='%23E0B959'>GILDEMI SENNA</text></svg>" alt="Gildemi Senna">
     <nav class="nav" id="nav">
       <a href="#painel"      data-v="painel"><svg viewBox="0 0 24 24"><use href="#i-painel"/></svg>Painel</a>
       <a href="#esteira"     data-v="esteira"><svg viewBox="0 0 24 24"><use href="#i-esteira"/></svg>Casos</a>
+      <a href="#agenda"      data-v="agenda"><svg viewBox="0 0 24 24"><use href="#i-agenda"/></svg>Agenda</a>
       <div class="nav-rot">Inteligência</div>
       <a href="#assistente"  data-v="assistente"><svg viewBox="0 0 24 24"><use href="#i-faisca"/></svg>Assistente</a>
       <a href="#whatsapp"    data-v="whatsapp"><svg viewBox="0 0 24 24"><use href="#i-zap"/></svg>WhatsApp<span class="selo-n oculto" id="selWpp">0</span></a>
-      <a href="#gmail"       data-v="gmail"><svg viewBox="0 0 24 24"><use href="#i-email"/></svg>Gmail<span class="selo-n oculto" id="selGmail">0</span></a>
-      <a href="#agenda"      data-v="agenda"><svg viewBox="0 0 24 24"><use href="#i-agenda"/></svg>Agenda</a>
       <div class="nav-rot">Justiça</div>
-      <a href="#observacao"  data-v="observacao"><svg viewBox="0 0 24 24"><use href="#i-olho"/></svg>Em observação<span class="selo-n oculto" id="selObs">0</span></a>
-      <a href="#processos"   data-v="processos"><svg viewBox="0 0 24 24"><use href="#i-balanca"/></svg>Processos<span class="selo-n oculto" id="selPub">0</span></a>
+      <a href="#processos"   data-v="processos"><svg viewBox="0 0 24 24"><use href="#i-balanca"/></svg>Meus processos<span class="selo-n oculto" id="selPub">0</span></a>
     </nav>
     <div class="eu">
       <div class="eu-l">
         <div class="eu-av" id="euAv">G</div>
         <div style="min-width:0">
           <div class="eu-n" id="euN">—</div>
-          <div class="eu-s">{{OAB}}</div>
+          <div class="eu-s">OAB/SP 417.105</div>
         </div>
       </div>
       <button class="bt-sair" id="btSair">Sair da conta</button>
@@ -697,17 +687,17 @@ ul.itens li::before{content:'';position:absolute;left:1px;top:.6em;width:5px;hei
 <div id="modais"></div>
 
 <!-- vazio no painel de verdade; no painel-demo.html entra o banco simulado -->
-{{DEMO}}
+
 
 <script>
 (function(){
 'use strict';
 
-var URL_SB = '{{SUPABASE_URL}}'.replace(/\/+$/, ''),
-    ANON   = '{{SUPABASE_ANON}}',
-    WPP    = '{{WPP}}',
-    ADV    = '{{ADV}}',
-    OAB_N  = '{{OAB}}';
+var URL_SB = 'https://dbugecyjjcfbmqeejupd.supabase.co'.replace(/\/+$/, ''),
+    ANON   = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRidWdlY3lqamNmYm1xZWVqdXBkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcyNjYxMzUsImV4cCI6MjEwMjg0MjEzNX0.zuq4yQW-pvjoIGVXg3DcHjqxOGVN3vLmZAPeaaXNngU',
+    WPP    = '5511900000000',
+    ADV    = 'Gildemi Senna',
+    OAB_N  = 'OAB/SP 417.105';
 
 /* ===================================================================
    Vocabulário do escritório. A ordem aqui é a ordem da esteira.
@@ -871,123 +861,38 @@ var E = {
   modo:'quadro',      /* esteira: quadro ou lista — mesma coisa, vista diferente */
   area:'',            /* filtro por área */
   mesRef:new Date(), diaSel:null,
-  processoAberto:null, filtroProc:null, procAba:'resumo',
-  obsAba:'observacao', procMovimentos:null,
+  processoAberto:null,
   docs:[], conversas:[], msgs:[],
   conversaId:null, conversaCtx:{},
+  assist:'perguntar',   /* aba da assistente */
   casoCtx:null,         /* caso que ele estava vendo antes de perguntar */
-  ultimaAnalise:null, docAtual:null, assistArquivos:[],
+  ultimaAnalise:null, docAtual:null,
   /* whatsapp */
-  wpp:{conexao:null, caixa:[], msgs:[], abertaId:null, busca:'', editando:false},
-  /* gmail */
-  gmail:{status:null, caixa:[], abertaThread:null, busca:'', sincronizando:false, pasta:'inbox',
-         anexos:[], anexosNovo:[], carregandoCorpo:null}
+  wpp:{sessao:null, caixa:[], msgs:[], abertaId:null, busca:'', editando:false}
 };
-
-/* "lida" do gmail não vem do servidor (não pedimos permissão pra marcar
-   e-mail como lido no Gmail de verdade) — é só uma lembrança local deste
-   navegador, igual um "já vi isso" pessoal. */
-function gmailLida(threadId){
-  try { return JSON.parse(localStorage.getItem('sena_gmail_lidas') || '{}')[threadId] === true; }
-  catch(e){ return false; }
-}
-function marcaGmailLida(threadId){
-  try {
-    var m = JSON.parse(localStorage.getItem('sena_gmail_lidas') || '{}');
-    m[threadId] = true;
-    localStorage.setItem('sena_gmail_lidas', JSON.stringify(m));
-  } catch(e){}
-}
 
 function ativo(c){ return c.etapa !== 'encerrado' && c.etapa !== 'descartado'; }
 function acha(id){ for(var i=0;i<E.casos.length;i++) if(E.casos[i].id === id) return E.casos[i]; return null; }
 function tarefasDe(id){ return E.tarefas.filter(function(t){ return t.caso_id === id; }); }
 function movsDe(id){ return E.movs.filter(function(m){ return m.caso_id === id; }); }
 
-/* Colunas pedidas uma a uma, de propósito.
-   `select=*` aqui puxava o CORPO INTEIRO de 500 e-mails, o TEXTO inteiro
-   de 400 publicações e a ANÁLISE inteira de 100 documentos a cada
-   carregada — e carrega() roda a cada evento em tempo real, a cada 20s no
-   modo de reserva e a cada página do backfill do Gmail. Foi isso que
-   estourou a cota de tráfego do projeto. O conteúdo pesado agora só desce
-   quando o advogado abre o item (ver carregaCorpoThread, carregaTextoPubs
-   e carregaAnaliseDoc). */
-var COLS_PUB    = 'id_cnj,disponibilizada,tribunal,orgao,classe,tipo,processo,processo_num,link,partes,lida,caso_id,processo_id';
-var COLS_GMAIL  = 'id,gmail_id,thread_id,de,para,assunto,previa,recebida_em,enviada_por_mim,labels,caso_id';
-var COLS_DOC    = 'id,caso_id,criado_at,nome,caminho,tamanho,tipo,analise_at';
-
 function carrega(){
-  var pedidos = [
+  return Promise.all([
     api('/rest/v1/casos_com_prazo?select=*&order=criado_at.desc'),
     api('/rest/v1/movimentacoes?select=*&order=criado_at.desc&limit=300'),
     api('/rest/v1/tarefas?select=*&order=quando.asc&limit=500'),
-    api('/rest/v1/publicacoes?select=' + COLS_PUB + '&order=disponibilizada.desc&limit=400'),
-    api('/rest/v1/processos?select=*&order=criado_at.desc'),
-    api('/rest/v1/documentos?select=' + COLS_DOC + '&order=criado_at.desc&limit=100'),
+    api('/rest/v1/publicacoes?select=*&order=disponibilizada.desc&limit=400'),
+    api('/rest/v1/processos_oab?select=*&order=ultima.desc'),
+    api('/rest/v1/documentos?select=*&order=criado_at.desc&limit=100'),
     api('/rest/v1/conversas?select=*&order=mexida_at.desc&limit=40'),
-    E.wpp.conexao
-      ? Promise.resolve(E.wpp.conexao)
-      : api('/functions/v1/kapso', {method:'POST', body: JSON.stringify({acao:'status'})})
-          .catch(function(e){ return {conectado:false, motivo:e.message}; }),
-    api('/rest/v1/wpp_caixa?select=*&order=ultima_at.desc&limit=200'),
-    api('/rest/v1/gmail_mensagens?select=' + COLS_GMAIL + '&order=recebida_em.desc&limit=200'),
-    /* status do Gmail é chamada de Edge Function: só na primeira carga.
-       Depois quem mantém isso em dia é a vigiaGmail(), que já roda na aba. */
-    E.gmail.status
-      ? Promise.resolve(E.gmail.status)
-      : api('/functions/v1/gmail', {method:'POST', body: JSON.stringify({acao:'status'})})
-          .catch(function(){ return {conectado:false}; })
-  ];
-
-  return Promise.all(pedidos).then(function(r){
+    api('/rest/v1/wpp_sessao?select=*&id=eq.1'),
+    api('/rest/v1/wpp_caixa?select=*&order=ultima_at.desc&limit=200')
+  ]).then(function(r){
     E.casos = r[0] || []; E.movs = r[1] || []; E.tarefas = r[2] || [];
     E.pubs  = r[3] || []; E.processos = r[4] || [];
     E.docs  = r[5] || []; E.conversas = r[6] || [];
-    E.wpp.conexao = r[7] || {conectado:false};
+    E.wpp.sessao = (r[7] || [])[0] || null;
     E.wpp.caixa  = r[8] || [];
-    /* preserva o que já foi baixado sob demanda: recarregar a lista não
-       pode apagar o corpo do e-mail que está aberto na tela */
-    E.gmail.caixa  = juntaCorpos(r[9] || [], E.gmail.caixa);
-    E.gmail.status = r[10] || {conectado:false};
-  });
-}
-
-/* Texto da publicação: pesado (1–2 KB por linha) e só aparece na aba
-   "Publicações" de um processo. Busca só as daquele processo, e só uma
-   vez — se já tem texto em memória, não repete a chamada. */
-function carregaTextoPubs(processoId){
-  if(!processoId) return Promise.resolve();
-  var sem = E.pubs.filter(function(p){ return p.processo_id === processoId && p.texto == null; });
-  if(!sem.length) return Promise.resolve();
-
-  return api('/rest/v1/publicacoes?select=id_cnj,texto&processo_id=eq.' + encodeURIComponent(processoId))
-    .then(function(linhas){
-      var porId = {};
-      (linhas || []).forEach(function(l){ porId[l.id_cnj] = l.texto; });
-      E.pubs.forEach(function(p){ if(porId[p.id_cnj] !== undefined) p.texto = porId[p.id_cnj]; });
-      pinta();
-    })
-    .catch(function(){ /* a aba mostra a publicação sem o texto; não trava a tela */ });
-}
-
-/* Mesma ideia pra análise do documento: só desce quando ele abre o doc. */
-function carregaAnaliseDoc(docId){
-  return api('/rest/v1/documentos?select=id,analise&id=eq.' + encodeURIComponent(docId))
-    .then(function(linhas){
-      var a = (linhas || [])[0];
-      if(a) E.docs.forEach(function(d){ if(d.id === docId) d.analise = a.analise; });
-      return a ? a.analise : null;
-    });
-}
-
-/* Reaproveita corpo/html que já tinham sido buscados pra thread aberta. */
-function juntaCorpos(novos, antigos){
-  var cache = {};
-  (antigos || []).forEach(function(m){ if(m.corpo != null) cache[m.gmail_id] = m; });
-  return novos.map(function(m){
-    var c = cache[m.gmail_id];
-    if(c){ m.corpo = c.corpo; m.html = c.html; }
-    return m;
   });
 }
 
@@ -1014,8 +919,8 @@ function alertas(){
    Navegação
    =================================================================== */
 var TITULOS = {painel:'Painel', esteira:'Casos', agenda:'Agenda',
-               assistente:'Assistente', whatsapp:'WhatsApp', gmail:'Gmail',
-               observacao:'Em Observação', processos:'Processos', caso:'Caso'};
+               assistente:'Assistente', whatsapp:'WhatsApp',
+               processos:'Meus processos', caso:'Caso'};
 
 function vai(vista, id){
   E.vista = vista; E.casoId = id || null;
@@ -1037,24 +942,12 @@ function pinta(){
     if(a.dataset.v === E.vista) a.setAttribute('aria-current','page');
     else a.removeAttribute('aria-current');
   });
-  // só conta publicação não lida de processo já CONFIRMADO — é o que a
-  // tela "Processos" de fato mostra. Não lida de processo em observação
-  // não entra aqui (esse aviso já vive no selo "Em observação").
-  var idsConfirmados = {};
-  E.processos.forEach(function(p){ if(p.status_triagem === 'confirmado') idsConfirmados[p.id] = true; });
-  var naoLidas = E.pubs.filter(function(p){ return !p.lida && p.processo_id && idsConfirmados[p.processo_id]; }).length;
+  var naoLidas = E.pubs.filter(function(p){ return !p.lida; }).length;
   $('selPub').textContent = naoLidas;
   $('selPub').classList.toggle('oculto', !naoLidas);
-  var emObs = E.processos.filter(function(p){ return p.status_triagem === 'observacao'; }).length;
-  $('selObs').textContent = emObs > 99 ? '99+' : emObs;
-  $('selObs').classList.toggle('oculto', !emObs);
   var wnl = E.wpp.caixa.reduce(function(t,c){ return t + (c.nao_lidas||0); }, 0);
   $('selWpp').textContent = wnl > 99 ? '99+' : wnl;
   $('selWpp').classList.toggle('oculto', !wnl);
-  var threadsGmail = {}; E.gmail.caixa.forEach(function(m){ if(!m.enviada_por_mim) threadsGmail[m.thread_id] = true; });
-  var gnl = Object.keys(threadsGmail).filter(function(t){ return !gmailLida(t); }).length;
-  $('selGmail').textContent = gnl > 99 ? '99+' : gnl;
-  $('selGmail').classList.toggle('oculto', !gnl);
   var n = alertas().length;
   $('sinoN').textContent = n > 9 ? '9+' : n;
   $('sinoN').classList.toggle('oculto', !n);
@@ -1064,19 +957,12 @@ function pinta(){
   else if(E.vista === 'agenda')    c.innerHTML = vistaAgenda();
   else if(E.vista === 'assistente') c.innerHTML = vistaAssistente();
   else if(E.vista === 'whatsapp')   c.innerHTML = vistaWhatsapp();
-  else if(E.vista === 'gmail')      c.innerHTML = vistaGmail();
-  else if(E.vista === 'observacao') c.innerHTML = E.processoAberto ? vistaProcesso() : vistaObservacao();
-  else if(E.vista === 'processos') c.innerHTML = E.processoAberto ? vistaProcesso() : vistaProcessos();
+  else if(E.vista === 'processos') c.innerHTML = vistaProcessos();
   else if(E.vista === 'caso')      c.innerHTML = vistaCaso();
   else                             c.innerHTML = vistaPainel();
   c.scrollTop = 0;
   if(E.vista === 'esteira' && E.modo === 'quadro') ligaArrastar();
-  /* o repinte apaga a lista de anexos do DOM — redesenha a partir do
-     estado, senão o arquivo escolhido some da tela ao chegar um e-mail */
-  if(E.vista === 'gmail') pintaAnexos('gmailAnexos');
-  if(E.vista === 'assistente') pintaAnexoAssist();
   vigiaSessaoWpp();
-  vigiaGmail();
 }
 
 /* ===================================================================
@@ -1125,18 +1011,11 @@ function vistaPainel(){
      algum caso cadastrado na esteira, então entram no painel também.
      Quando ainda não há caso nenhum, os blocos abaixo (por área, por etapa,
      entradas por semana, atividade recente) caem pros dados de processo em
-     vez de ficar tudo vazio só porque a esteira de leads começou zerada.
-
-     `E.processos` traz TODO status_triagem — só o confirmado é carteira
-     oficial pros gráficos abaixo; observação/ignorado entram só nos
-     contadores de triagem. */
-  var confirmados      = E.processos.filter(function(p){ return p.status_triagem === 'confirmado'; }),
-      emObservacao     = E.processos.filter(function(p){ return p.status_triagem === 'observacao'; }),
-      ignorados        = E.processos.filter(function(p){ return p.status_triagem === 'ignorado'; }),
-      procComNovidade  = confirmados.filter(function(p){ return statsProcesso(p).nao_lidas > 0; }).length,
+     vez de ficar tudo vazio só porque a esteira de leads começou zerada. */
+  var procComNovidade = E.processos.filter(function(p){ return p.nao_lidas > 0; }).length,
       pubsNaoLidas     = E.pubs.filter(function(x){ return !x.lida; }).length,
       tribunaisProc    = {};
-  confirmados.forEach(function(p){ tribunaisProc[p.tribunal] = (tribunaisProc[p.tribunal]||0) + 1; });
+  E.processos.forEach(function(p){ tribunaisProc[p.tribunal] = (tribunaisProc[p.tribunal]||0) + 1; });
 
   var CORES_TRIB = ['#22406E','#E0B959','#8792A3','#5B8C5A','#B9553E','#6A5ACD'];
   var coresTrib = {};
@@ -1172,16 +1051,9 @@ function vistaPainel(){
     kpi('relogio', 'Prazo em atenção', atencao.length, 'entre 90 e 180 dias', 'esteira') +
     kpi('pessoa',  'Entraram na semana', semana.length, 'últimos 7 dias', 'esteira') +
     kpi('agenda',  'Compromissos abertos', E.tarefas.filter(function(t){ return !t.feita; }).length, 'prazos e audiências', 'agenda') +
-    kpi('balanca', 'Processos confirmados', confirmados.length, Object.keys(tribunaisProc).length + ' tribunal(is)', 'processos') +
-    kpi('olho',    'Em observação', emObservacao.length, 'aguardando sua confirmação', 'observacao', emObservacao.length > 0) +
+    kpi('balanca', 'Processos no seu nome', E.processos.length, Object.keys(tribunaisProc).length + ' tribunal(is), pelo Diário', 'processos') +
     kpi('sino',    'Publicações não lidas', pubsNaoLidas, procComNovidade + ' processo(s) com novidade', 'processos', pubsNaoLidas > 0) +
   '</div>' +
-
-  (emObservacao.length ? '<div class="aviso" style="background:var(--azul-cl);color:#123A66">' + ico('olho') +
-    '<div><b>' + emObservacao.length + ' processo' + (emObservacao.length>1?'s':'') + ' esperando sua triagem.</b> ' +
-    'A OAB achou pelo Diário, mas ainda não foi confirmado como seu. ' +
-    '<button class="bt bt-fino bt-mini" data-ir="observacao" style="margin-left:8px">Revisar processos em observação</button>' +
-    '</div></div>' : '') +
 
   (semData.length ? '<div class="aviso">' + ico('alerta') +
     '<div><b>' + semData.length + ' caso' + (semData.length>1?'s trabalhistas':' trabalhista') +
@@ -1202,7 +1074,7 @@ function vistaPainel(){
     '<div class="bloco">' +
       '<div class="bloco-cab"><h2>' + (abertos.length ? 'Por área' : 'Processos por tribunal') + '</h2></div>' +
       '<div class="bloco-corpo">' + (abertos.length ? rosca(areas, coresArea, abertos.length) :
-        (confirmados.length ? rosca(tribunaisProc, coresTrib, confirmados.length, 'processos') :
+        (E.processos.length ? rosca(tribunaisProc, coresTrib, E.processos.length, 'processos') :
           '<div class="vazio">Sem casos em aberto.</div>')) + '</div>' +
     '</div>' +
   '</div>' +
@@ -1250,7 +1122,7 @@ function vistaPainel(){
           '<span class="li-s">' + (c ? esc(c.nome) : 'caso removido') + '</span></span>' +
           '<span class="li-d"><span class="li-s">' + desde(m.criado_at) + '</span></span></button>';
       }).join('') : (pubsRecentes.length ? pubsRecentes.map(function(x){
-        return '<button class="linha-item" data-processo="' + esc(x.processo_id || '') + '">' +
+        return '<button class="linha-item" data-processo="' + esc(x.processo || '') + '">' +
           '<span class="li-p"><span class="li-t">' + esc(x.tipo || 'Publicação') + '</span>' +
           '<span class="li-s">' + esc(x.processo || '') + '</span></span>' +
           '<span class="li-d"><span class="li-s">' + desde(x.disponibilizada) + '</span></span></button>';
@@ -1599,7 +1471,7 @@ function vistaAgenda(){
 }
 
 /* ===================================================================
-   VISTA: Processos — Em Observação / Processos (confirmados) / Detalhe
+   VISTA: Publicações do Diário
    =================================================================== */
 /* Quem é o cliente do processo: o DJEN traz as partes com polo,
    e o o advogado é sempre o polo ativo. */
@@ -1611,490 +1483,125 @@ function autorDe(p){
   return partes.length ? partes[0].nome : '—';
 }
 
-/* publicações de um processo (por id) + os números derivados que a antiga
-   view `processos_oab` calculava — agora `processos` é tabela própria, então
-   isso é conta em memória sobre o que já está carregado em E.pubs. */
-function pubsDoProcesso(id){
-  return E.pubs.filter(function(x){ return x.processo_id === id; });
-}
-function statsProcesso(p){
-  var pubs = pubsDoProcesso(p.id);
-  var porData = pubs.slice().sort(function(a,b){
-    return String(a.disponibilizada||'').localeCompare(String(b.disponibilizada||''));
-  });
-  return {
-    publicacoes: pubs.length,
-    nao_lidas:   pubs.filter(function(x){ return !x.lida; }).length,
-    ultima:      porData.length ? porData[porData.length-1].disponibilizada : p.ultima_movimentacao,
-    primeira:    porData.length ? porData[0].disponibilizada : null
-  };
-}
-
-var CONFIANCA_ROT = {
-  alta:  ['tag-verde',    '🟢', 'Alta confiança'],
-  media: ['tag-ambar',    '🟡', 'Média confiança'],
-  baixa: ['tag-vermelho', '🔴', 'Baixa confiança']
-};
-/* O selo nunca decide nada sozinho — é só prioridade de revisão. O motivo
-   de cada sinal fica no title, pro advogado auditar sem abrir mais nada. */
-function seloConfianca(p){
-  var r = CONFIANCA_ROT[p.confianca_nivel];
-  if(!r) return '';
-  var sinais = (p.confianca_sinais || []).map(function(s){ return s.motivo; }).join(' · ');
-  return '<span class="tag ' + r[0] + '" title="' + esc(sinais) + '">' + r[1] + ' ' + r[2] + '</span>';
-}
-
-function rotStatusProcessual(s){
-  var R = {em_andamento:'Em andamento', arquivado:'Arquivado', suspenso:'Suspenso', baixado:'Baixado', encerrado:'Encerrado'};
-  return R[s] || s || '—';
-}
-
-/* ---------- Em Observação ---------- */
-var ORDEM_CONFIANCA = {baixa:0, media:1, alta:2};
-
-function vistaObservacao(){
-  var aba = E.obsAba === 'ignorado' ? 'ignorado' : 'observacao';
-  var t = E.busca.trim().toLowerCase();
-
-  var emObs     = E.processos.filter(function(p){ return p.status_triagem === 'observacao'; });
-  var ignorados = E.processos.filter(function(p){ return p.status_triagem === 'ignorado'; });
-
-  var lista = (aba === 'ignorado' ? ignorados : emObs).filter(function(p){
-    if(!t) return true;
-    return ((p.processo||'') + ' ' + (p.orgao||'') + ' ' + (p.classe||'') + ' ' +
-            autorDe(p)).toLowerCase().indexOf(t) > -1;
-  }).sort(function(a,b){
-    if(aba === 'observacao'){
-      var oa = ORDEM_CONFIANCA[a.confianca_nivel]; oa = oa === undefined ? 3 : oa;
-      var ob = ORDEM_CONFIANCA[b.confianca_nivel]; ob = ob === undefined ? 3 : ob;
-      if(oa !== ob) return oa - ob;
-    }
-    return String(b.criado_at).localeCompare(String(a.criado_at));
-  });
-
-  return '<div class="aviso" style="background:var(--azul-cl);color:#123A66">' + ico('olho') +
-    '<div><b>Processos encontrados automaticamente pela OAB ' + esc(OAB_N) + '.</b> ' +
-    'Achar pela OAB não significa que é seu — confirme os que realmente são da sua carteira; ' +
-    'o resto é só ignorar. Nada aqui vira carteira oficial sozinho.</div></div>' +
-
-    '<div class="assist-abas">' +
-      '<button data-obs-aba="observacao"' + (aba==='observacao'?' aria-pressed="true"':'') + '>' +
-        ico('olho') + 'Em observação <span class="tag" style="margin-left:5px">' + emObs.length + '</span></button>' +
-      '<button data-obs-aba="ignorado"' + (aba==='ignorado'?' aria-pressed="true"':'') + '>' +
-        ico('x') + 'Ignorados <span class="tag" style="margin-left:5px">' + ignorados.length + '</span></button>' +
-    '</div>' +
-
-    '<div class="bloco">' +
-      '<div class="bloco-cab"><h2>' + (aba==='ignorado' ? 'Ignorados' : 'Aguardando confirmação') + '</h2>' +
-        '<div class="dir"><span class="li-s num">' + lista.length + '</span></div></div>' +
-      (lista.length ? lista.map(function(p){
-        return '<div class="linha-item" style="display:block;padding:15px 18px">' +
-          '<div class="acoes" style="margin-bottom:7px">' +
-            (aba === 'observacao' ? seloConfianca(p) : '') +
-            '<span class="tag">' + esc(p.tribunal || '—') + '</span>' +
-            (p.orgao ? '<span class="tag">' + esc(p.orgao) + '</span>' : '') +
-            '<span class="li-s" style="margin-left:auto">' +
-              (aba === 'ignorado' ? 'ignorado ' + desde(p.ignorado_em) : 'achado ' + desde(p.criado_at)) +
-            '</span>' +
-          '</div>' +
-          '<div class="nm">' + esc(autorDe(p)) + '</div>' +
-          '<div class="sb num">' + esc(p.processo || '—') + '</div>' +
-          '<div class="sb">' + esc(p.classe || '—') + '</div>' +
-          '<div class="acoes" style="margin-top:10px">' +
-            '<button class="bt bt-fino bt-mini" data-processo="' + p.id + '">Ver detalhes</button>' +
-            (aba === 'observacao'
-              ? '<button class="bt bt-ouro bt-mini" data-confirma-processo="' + p.id + '">' + ico('check') + 'Confirmar processo</button>' +
-                '<button class="bt bt-fino bt-mini" data-ignora-processo="' + p.id + '">Ignorar</button>'
-              : '<button class="bt bt-fino bt-mini" data-reavalia-processo="' + p.id + '">Reavaliar</button>') +
-          '</div></div>';
-      }).join('') : '<div class="vazio">' + ico('olho') +
-        (aba==='ignorado' ? 'Nenhum processo ignorado.' : 'Nada em observação — tudo que a OAB achou já foi revisado.') +
-        '</div>') +
-    '</div>';
-}
-
-/* ---------- Processos (carteira confirmada) ---------- */
-var FILTROS_PROCESSO = [
-  ['', 'Todos'], ['andamento', 'Em andamento'], ['prazo', 'Com prazo'],
-  ['novidade', 'Com novidade'], ['recentes', 'Atualizados recentemente'],
-  ['sem_mov', 'Sem movimentação'], ['arquivado', 'Arquivados']
-];
-
-function aplicaFiltroProcesso(lista, filtro){
-  if(!filtro) return lista;
-  var agora = Date.now(), dia = 86400000;
-  return lista.filter(function(p){
-    if(filtro === 'andamento') return p.status_processual === 'em_andamento';
-    if(filtro === 'arquivado') return p.status_processual === 'arquivado';
-    if(filtro === 'novidade')  return statsProcesso(p).nao_lidas > 0;
-    if(filtro === 'recentes'){
-      var ref = p.ultima_movimentacao || p.atualizado_at;
-      return !!ref && (agora - new Date(ref).getTime()) <= 7*dia;
-    }
-    if(filtro === 'sem_mov'){
-      var ref2 = p.ultima_movimentacao;
-      return !ref2 || (agora - new Date(ref2).getTime()) > 60*dia;
-    }
-    if(filtro === 'prazo'){
-      if(!p.caso_id) return false;
-      return tarefasDe(p.caso_id).some(function(x){ return !x.feita; });
-    }
-    return true;
-  });
-}
-
 function vistaProcessos(){
-  var confirmados = E.processos.filter(function(p){ return p.status_triagem === 'confirmado'; });
-  var t = E.busca.trim().toLowerCase();
+  if(E.processoAberto) return vistaProcesso();
 
-  var lista = aplicaFiltroProcesso(confirmados, E.filtroProc).filter(function(p){
+  var t = E.busca.trim().toLowerCase();
+  var lista = E.processos.filter(function(p){
     if(!t) return true;
     return ((p.processo||'') + ' ' + (p.orgao||'') + ' ' + (p.classe||'') + ' ' +
             autorDe(p)).toLowerCase().indexOf(t) > -1;
-  }).sort(function(a,b){
-    var sa = statsProcesso(a).ultima || a.criado_at, sb = statsProcesso(b).ultima || b.criado_at;
-    return String(sb||'').localeCompare(String(sa||''));
-  });
+  }).sort(function(a,b){ return String(b.ultima).localeCompare(String(a.ultima)); });
 
   var tribunais = {};
-  confirmados.forEach(function(p){ tribunais[p.tribunal] = (tribunais[p.tribunal]||0)+1; });
-  var novos = confirmados.filter(function(p){ return statsProcesso(p).nao_lidas > 0; }).length;
+  E.processos.forEach(function(p){ tribunais[p.tribunal] = (tribunais[p.tribunal]||0)+1; });
+  var novos = E.processos.filter(function(p){ return p.nao_lidas > 0; }).length;
 
   return '<div class="aviso" style="background:var(--azul-cl);color:#123A66">' + ico('balanca') +
-    '<div><b>Sua carteira confirmada.</b> Processo só entra aqui depois que você confirma em Em Observação. ' +
-    '<button class="bt bt-fino bt-mini" data-ir="observacao" style="margin-left:6px">Ver Em Observação</button></div></div>' +
+    '<div><b>Puxado direto do Diário de Justiça Eletrônico Nacional pela OAB ' + esc(OAB_N) + '.</b> ' +
+    'Não é cadastro: é o que a Justiça publicou no seu nome. A varredura roda toda madrugada ' +
+    'e o que chega de novo fica marcado.</div></div>' +
 
     '<div class="kpis">' +
       '<div class="kpi"><span class="kpi-t">' + ico('balanca') + 'Processos</span>' +
-        '<span class="kpi-n num">' + confirmados.length + '</span>' +
-        '<span class="kpi-s">confirmados</span></div>' +
+        '<span class="kpi-n num">' + E.processos.length + '</span>' +
+        '<span class="kpi-s">no seu nome</span></div>' +
       '<div class="kpi' + (novos ? ' kpi-alerta' : '') + '"><span class="kpi-t">' + ico('sino') + 'Com novidade</span>' +
         '<span class="kpi-n num">' + novos + '</span>' +
         '<span class="kpi-s">publicação não lida</span></div>' +
       '<div class="kpi"><span class="kpi-t">' + ico('pasta') + 'Publicações</span>' +
-        '<span class="kpi-n num">' + confirmados.reduce(function(soma,p){ return soma + statsProcesso(p).publicacoes; }, 0) + '</span>' +
-        '<span class="kpi-s">da carteira confirmada</span></div>' +
+        '<span class="kpi-n num">' + E.pubs.length + '</span>' +
+        '<span class="kpi-s">no total</span></div>' +
       '<div class="kpi"><span class="kpi-t">' + ico('lista') + 'Tribunais</span>' +
         '<span class="kpi-n num">' + Object.keys(tribunais).length + '</span>' +
         '<span class="kpi-s">' + Object.keys(tribunais).slice(0,4).join(' · ') + '</span></div>' +
     '</div>' +
 
-    '<div class="barra-vista">' +
-      FILTROS_PROCESSO.map(function(f){
-        return '<button class="chip-area"' + ((E.filtroProc||'') === f[0] ? ' aria-pressed="true"' : '') +
-          ' data-filtro-processo="' + f[0] + '">' + f[1] + '</button>';
-      }).join('') +
-      '<span class="li-s num" style="margin-left:auto">' + lista.length + ' de ' + confirmados.length + '</span>' +
-    '</div>' +
-
     '<div class="bloco">' +
-      '<div class="bloco-cab"><h2>Processos</h2><div class="dir">' +
+      '<div class="bloco-cab"><h2>Meus processos</h2><div class="dir">' +
+        '<span class="li-s num">' + lista.length + '</span>' +
         '<button class="bt bt-fino bt-mini" id="btVarrer">' + ico('busca') + 'Atualizar do Diário</button>' +
       '</div></div>' +
       (lista.length ? '<div class="rolagem"><table><thead><tr>' +
         '<th>Cliente</th><th>Processo</th><th>Vara</th><th>Classe</th>' +
-        '<th>Situação</th><th>Publicações</th><th>Última</th></tr></thead><tbody>' +
+        '<th>Publicações</th><th>Última</th></tr></thead><tbody>' +
         lista.map(function(p){
-          var st = statsProcesso(p);
-          return '<tr data-processo="' + p.id + '" tabindex="0">' +
+          return '<tr data-processo="' + esc(p.processo) + '" tabindex="0">' +
             '<td><div class="nm">' + esc(autorDe(p)) + '</div>' +
-              (st.nao_lidas ? '<span class="tag tag-azul"><span class="ponto"></span>' +
-                st.nao_lidas + ' nova' + (st.nao_lidas>1?'s':'') + '</span>' : '') + '</td>' +
-            '<td><span class="num" style="font-size:13px">' + esc(p.processo || '—') + '</span>' +
-              '<div class="sb">' + esc(p.tribunal || '') + '</div></td>' +
+              (p.nao_lidas ? '<span class="tag tag-azul"><span class="ponto"></span>' +
+                p.nao_lidas + ' nova' + (p.nao_lidas>1?'s':'') + '</span>' : '') + '</td>' +
+            '<td><span class="num" style="font-size:13px">' + esc(p.processo) + '</span>' +
+              '<div class="sb">' + esc(p.tribunal) + '</div></td>' +
             '<td><span class="sb">' + esc(p.orgao || '—') + '</span></td>' +
             '<td><span class="sb">' + esc(p.classe || '—') + '</span></td>' +
-            '<td><span class="tag">' + rotStatusProcessual(p.status_processual) + '</span></td>' +
-            '<td><span class="num">' + st.publicacoes + '</span></td>' +
-            '<td><span class="sb">' + (st.ultima ? data(st.ultima) : '—') + '</span></td>' +
+            '<td><span class="num">' + p.publicacoes + '</span></td>' +
+            '<td><span class="sb">' + data(p.ultima) + '</span></td>' +
           '</tr>';
         }).join('') + '</tbody></table></div>'
       : '<div class="vazio">' + ico('balanca') +
-        'Nada aqui ainda. Confirme processos em <b>Em Observação</b> ou clique em <b>Atualizar do Diário</b>.</div>') +
+        'Nada ainda. Clique em <b>Atualizar do Diário</b> pra buscar pela sua OAB.</div>') +
     '</div>';
-}
-
-/* ---------- Detalhe do processo (compartilhado por Em Observação e Processos) ---------- */
-var PROC_ABAS = [
-  ['resumo', 'pasta', 'Resumo'],
-  ['movimentos', 'relogio', 'Movimentações'],
-  ['publicacoes', 'lista', 'Publicações'],
-  ['partes', 'pessoa', 'Partes'],
-  ['documentos', 'baixar', 'Documentos'],
-  ['prazos', 'agenda', 'Prazos e tarefas'],
-  ['ia', 'faisca', 'Assistente']
-];
-
-/* Polo de uma parte, no mesmo agrupamento que o PJe usa na tela de
-   detalhe: A (ativo), P (passivo) e o resto vira "Outros interessados"
-   (perito, terceiro, assistente etc — o DJEN às vezes manda sem polo). */
-function numOab(s){ return String(s || '').replace(/\D/g, ''); }
-
-/* Heurística: o DJEN devolve os advogados da comunicação numa lista solta,
-   sem dizer qual representa qual parte. Como o escritório sempre entra
-   como advogado do polo ativo (mesma premissa de autorDe, acima), quem
-   tem a OAB do o advogado cai no ativo e o resto vai pro passivo. Não é
-   garantido — por isso o selo "inferido" na tela em vez de apresentar
-   como dado confirmado. */
-function agrupaAdvogados(p){
-  var lista = p.advogados || [];
-  if(!lista.length) return { certo:false, ativo:[], passivo:[] };
-  var meus   = lista.filter(function(a){ return numOab(a.oab) === numOab(OAB_N); });
-  var outros = lista.filter(function(a){ return numOab(a.oab) !== numOab(OAB_N); });
-  if(!meus.length) return { certo:false, ativo:[], passivo:[] };
-  return { certo:true, ativo:meus, passivo:outros };
-}
-
-function listaAdvogados(advs, certo){
-  if(!advs.length) return '';
-  return '<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--linha-2)">' +
-    '<div class="li-s" style="margin-bottom:6px">Advogado(s)' +
-      (certo ? '' : ' <span title="O DJEN não amarra advogado a polo — isto é inferido, confira antes de confiar">(inferido)</span>') +
-    '</div>' +
-    advs.map(function(a){
-      return '<div style="margin-bottom:6px"><b>' + esc(a.nome || '—') + '</b>' +
-        (a.oab ? '<div class="li-s">OAB ' + esc(a.oab) + (a.uf ? '/' + esc(a.uf) : '') + '</div>' : '') +
-      '</div>';
-    }).join('') +
-  '</div>';
-}
-
-/* Campo que o PJe mostra mas nem sempre temos: "Não informado" em vez de
-   sumir o campo — mantém o layout igual ao PJe mesmo quando falta dado
-   (pedido explícito, pra não parecer que a tela tá quebrada/incompleta). */
-function naoInf(v){ return (v === null || v === undefined || v === '') ? '<span class="li-s">Não informado</span>' : esc(v); }
-function dinheiro(v){
-  return (v === null || v === undefined) ? null : Number(v).toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
-}
-
-function blocoPolo(titulo, cor, partes, advs, certo){
-  return '<div class="bloco"><div class="bloco-cab">' +
-      '<span style="width:9px;height:9px;border-radius:50%;background:' + cor + ';flex:none"></span>' +
-      '<h3>' + esc(titulo) + '</h3></div>' +
-    '<div class="bloco-corpo" style="padding:14px 18px">' + (partes.length
-      ? '<ul style="margin:0;padding:0;list-style:none;display:grid;gap:14px">' +
-        partes.map(function(x){
-          return '<li><b>' + esc(x.nome || '—') + '</b>' +
-            '<div class="li-s">CPF/CNPJ: Não informado</div>' +
-            '<div class="li-s">Endereço: Não informado</div></li>';
-        }).join('') + '</ul>'
-      : '<div class="li-s">Nenhuma parte neste polo.</div>') +
-    listaAdvogados(advs, certo) +
-    '</div></div>';
-}
-
-function abaProcessoResumo(p, pubs, movs, caso){
-  var partes = p.partes || [];
-  var ativo    = partes.filter(function(x){ return x.polo === 'A'; });
-  var passivo  = partes.filter(function(x){ return x.polo === 'P'; });
-  var outros   = partes.filter(function(x){ return x.polo !== 'A' && x.polo !== 'P'; });
-  var advs = agrupaAdvogados(p);
-  var prioridades = p.prioridades || [];
-  var audiencias  = p.audiencias || [];
-
-  // Campos como "Valor da causa" e "Prioridade" nem DJEN nem DataJud
-  // trazem de graça — quando aparecem preenchidos é porque a IA achou
-  // escrito numa publicação, ou o advogado editou à mão (botão "Editar").
-  // Sem nenhum dos dois, mostra "Não informado" — nunca some o campo,
-  // pra manter o mesmo layout do PJe mesmo com a informação faltando.
-  return '<div class="bloco"><div class="bloco-cab"><h2>Dados do processo</h2><div class="dir">' +
-      '<button class="bt bt-fino bt-mini" data-edita-processo="' + p.id + '">Editar</button>' +
-    '</div></div>' +
-      '<div class="bloco-corpo"><dl class="linhas">' +
-        '<dt>Número</dt><dd>' + esc(p.processo || '—') + '</dd>' +
-        '<dt>Órgão julgador</dt><dd>' + esc(p.orgao || '—') + '</dd>' +
-        '<dt>Tribunal</dt><dd>' + esc(p.tribunal || '—') + '</dd>' +
-        '<dt>Classe</dt><dd>' + esc(p.classe || '—') + '</dd>' +
-        '<dt>Assunto(s)</dt><dd>' + esc(p.assunto || '—') + '</dd>' +
-        '<dt>Distribuído em</dt><dd>' + (p.data_distribuicao ? data(p.data_distribuicao) : '—') + '</dd>' +
-        '<dt>Autuado em</dt><dd>' + (p.autuado_em ? data(p.autuado_em) : naoInf(null)) + '</dd>' +
-        '<dt>Valor da causa</dt><dd>' + (dinheiro(p.valor_causa) || naoInf(null)) + '</dd>' +
-        '<dt>Justiça gratuita</dt><dd>' + (p.justica_gratuita === true ? 'Sim' : p.justica_gratuita === false ? 'Não' : naoInf(null)) + '</dd>' +
-        '<dt>Prioridade(s)</dt><dd>' + (prioridades.length ? esc(prioridades.join(', ')) : naoInf(null)) + '</dd>' +
-        '<dt>Data das audiências</dt><dd>' + (audiencias.length
-          ? audiencias.map(function(a){
-              var quando = a.data ? data(a.data) + (String(a.data).length > 10 ? ' às ' + hora(a.data) : '') : '—';
-              return esc((a.tipo ? a.tipo + ': ' : '') + quando + (a.local ? ' — ' + a.local : ''));
-            }).join('<br>')
-          : naoInf(null)) + '</dd>' +
-        '<dt>Situação</dt><dd>' + rotStatusProcessual(p.status_processual) + '</dd>' +
-        '<dt>Última atividade</dt><dd>' + (p.ultima_movimentacao ? data(p.ultima_movimentacao) : '—') + '</dd>' +
-        (caso ? '<dt>Caso vinculado</dt><dd><button class="bt bt-fino bt-mini" data-caso="' + caso.id + '">' + esc(caso.nome) + '</button></dd>' : '') +
-      '</dl></div></div>' +
-    '<div class="grade g-2b" style="margin-top:14px">' +
-      blocoPolo('Polo Ativo', '#2fa84f', ativo, advs.ativo, advs.certo) +
-      blocoPolo('Polo Passivo', '#e0763c', passivo, advs.passivo, advs.certo) +
-    '</div>' +
-    (outros.length ? '<div style="margin-top:14px">' + blocoPolo('Outros interessados', '#c9a227', outros, [], true) + '</div>' : '') +
-    '<p class="uso" style="margin:10px 2px">' + ico('alerta', ' style="width:14px;height:14px;vertical-align:-2px"') +
-      ' CPF, endereço e e-mail não vêm do DJEN/DataJud (fontes gratuitas) — só o PJe, com login direto no processo, traz isso. ' +
-      'Em processo de sigilo (ex: família), o próprio DJEN já abrevia o nome da parte antes de chegar até aqui.</p>' +
-    '<div class="bloco" style="margin-top:14px"><div class="bloco-cab"><h2>Como foi encontrado</h2></div>' +
-      '<div class="bloco-corpo">' +
-        '<dl class="linhas">' +
-          '<dt>Origem</dt><dd>' + esc((p.origem||'').toUpperCase() || '—') + '</dd>' +
-          '<dt>Publicações</dt><dd>' + pubs.length + '</dd>' +
-          '<dt>Movimentações</dt><dd>' + movs.length + '</dd>' +
-          (p.confirmado_em ? '<dt>Confirmado em</dt><dd>' + data(p.confirmado_em) + '</dd>' : '') +
-          (p.ignorado_em   ? '<dt>Ignorado em</dt><dd>' + data(p.ignorado_em) + '</dd>' : '') +
-        '</dl>' +
-        (p.confianca_sinais && p.confianca_sinais.length
-          ? '<div style="padding:0 18px 14px"><b>Sinais de confiança</b>' +
-            '<ul style="margin:8px 0 0;padding-left:18px">' +
-            p.confianca_sinais.map(function(s){ return '<li>' + esc(s.motivo) + '</li>'; }).join('') +
-            '</ul></div>'
-          : '') +
-      '</div></div>';
-}
-
-function abaProcessoMovimentos(movs){
-  if(!movs.length){
-    return '<div class="bloco"><div class="vazio">' + ico('relogio') +
-      'Sem movimentações sincronizadas ainda. Clique em <b>Linha do tempo (DataJud)</b> pra buscar.</div></div>';
-  }
-  return '<div class="bloco"><div class="bloco-cab"><h2>Movimentações</h2><div class="dir"><span class="li-s num">' +
-    movs.length + '</span></div></div>' +
-    '<div class="trilha">' + movs.map(function(m){
-      return '<div class="trilha-i"><div class="trilha-q">' + data(m.data_movimento) + '</div>' +
-        '<div class="trilha-t">' + esc(m.descricao) +
-          '<div class="li-s">Fonte: ' + esc((m.fonte||'').toUpperCase()) + '</div></div></div>';
-    }).join('') + '</div></div>';
-}
-
-function abaProcessoPublicacoes(pubs){
-  return '<div class="bloco"><div class="bloco-cab"><h2>Publicações</h2><div class="dir"><span class="li-s num">' +
-    pubs.length + '</span></div></div>' +
-    (pubs.length ? pubs.map(function(x){
-      return '<div class="linha-item" style="display:block;padding:15px 18px">' +
-        '<div class="acoes" style="margin-bottom:7px">' +
-          (x.lida ? '' : '<span class="tag tag-azul"><span class="ponto"></span>nova</span>') +
-          '<span class="tag">' + esc(x.tipo || 'Publicação') + '</span>' +
-          '<span class="li-s" style="margin-left:auto">Fonte: DJEN · ' + data(x.disponibilizada) + '</span>' +
-        '</div>' +
-        '<div class="pub-txt" data-pub-txt>' + esc(x.texto || '') + '</div>' +
-        '<div class="acoes" style="margin-top:9px">' +
-          '<button class="bt bt-fino bt-mini" data-abrir-txt="">Ler tudo</button>' +
-          (x.link ? '<a class="bt bt-fino bt-mini" href="' + esc(x.link) +
-            '" target="_blank" rel="noopener">Abrir no PJe</a>' : '') +
-          (x.lida ? '' : '<button class="bt bt-fino bt-mini" data-lida="' + x.id_cnj + '">Marcar lida</button>') +
-        '</div></div>';
-    }).join('') : '<div class="vazio">Sem publicações vinculadas.</div>') +
-  '</div>';
-}
-
-function abaProcessoPartes(partes){
-  return '<div class="bloco"><div class="bloco-cab"><h2>Partes</h2></div>' +
-    '<div class="bloco-corpo">' + (partes.length ? '<dl class="linhas">' +
-      partes.map(function(x){
-        return '<dt>' + (x.polo === 'A' ? 'Polo ativo' : x.polo === 'P' ? 'Polo passivo' : 'Parte') +
-          '</dt><dd>' + esc(x.nome) + '</dd>';
-      }).join('') + '</dl>' : '<div class="vazio" style="padding:14px">Sem partes registradas.</div>') +
-    '</div></div>';
-}
-
-function abaProcessoDocumentos(p, docs){
-  if(!p.caso_id) return '<div class="bloco"><div class="vazio">' + ico('pasta') +
-    'Vincule este processo a um caso pra ver documentos aqui.</div></div>';
-  if(!docs.length) return '<div class="bloco"><div class="vazio">' + ico('pasta') +
-    'Nenhum documento neste caso ainda.</div></div>';
-  return '<div class="bloco"><div class="bloco-cab"><h2>Documentos do caso</h2></div>' +
-    docs.map(function(d){
-      return '<button class="linha-item" data-documento="' + d.id + '">' +
-        '<span class="li-p"><span class="li-t">' + esc(d.nome) + '</span>' +
-        '<span class="li-s">' + esc(d.tipo || 'outro') + '</span></span>' +
-        '<span class="li-d"><span class="li-s">' + desde(d.criado_at) + '</span></span></button>';
-    }).join('') + '</div>';
-}
-
-function abaProcessoPrazos(p, tarefas){
-  if(!p.caso_id) return '<div class="bloco"><div class="vazio">' + ico('agenda') +
-    'Vincule este processo a um caso pra ver prazos e tarefas aqui.</div></div>';
-  var ordenadas = tarefas.slice().sort(function(a,b){ return new Date(a.quando) - new Date(b.quando); });
-  return '<div class="bloco"><div class="bloco-cab"><h2>Prazos e tarefas</h2><div class="dir">' +
-    '<button class="bt bt-fino bt-mini" data-nova-tarefa="' + p.caso_id + '">+ Nova</button></div></div>' +
-    (ordenadas.length ? ordenadas.map(function(t){
-      var tt = TIPO_TAREFA[t.tipo] || TIPO_TAREFA.tarefa;
-      return '<div class="linha-item" style="cursor:default">' +
-        '<span class="li-p"><span class="li-t">' + esc(t.titulo) + '</span><span class="li-s">' + tt[0] + '</span></span>' +
-        '<span class="li-d"><span class="tag">' + (t.feita ? 'feita' : ateQuando(t.quando)) + '</span></span></div>';
-    }).join('') : '<div class="vazio">' + ico('agenda') + 'Nenhum prazo ou tarefa neste caso.</div>') +
-  '</div>';
-}
-
-function abaProcessoIA(p){
-  var atalhos = [
-    'Resuma este processo.',
-    'Qual foi a última movimentação?',
-    'Existe algum prazo próximo?',
-    'Faça uma linha do tempo dos fatos.',
-    'Quais documentos são importantes?',
-    'O que aconteceu nos últimos 30 dias?'
-  ];
-  return '<div class="bloco"><div class="bloco-cab"><h2>🤖 Assistente Jurídico</h2></div>' +
-    '<div class="bloco-corpo">' +
-      '<p class="li-s" style="margin-bottom:12px">Este assistente está analisando o processo ' +
-        esc(p.processo || '') + '. Ele só afirma o que estiver nos dados deste processo — se não achar, diz que não achou.</p>' +
-      '<div class="atalhos">' + atalhos.map(function(a){
-        return '<button data-abre-ia-processo="' + p.id + '" data-atalho-proc="' + esc(a) + '">' + esc(a) + '</button>';
-      }).join('') + '</div>' +
-      '<button class="bt bt-ouro" style="margin-top:10px" data-abre-ia-processo="' + p.id + '">Abrir conversa</button>' +
-    '</div></div>';
 }
 
 function vistaProcesso(){
   var p = null;
-  E.processos.forEach(function(x){ if(x.id === E.processoAberto) p = x; });
-  if(!p) return '<button class="voltar" data-voltar-processos="">' + ico('esq') + 'Voltar</button>' +
-    '<div class="bloco"><div class="vazio">Processo não encontrado.</div></div>';
+  E.processos.forEach(function(x){ if(x.processo === E.processoAberto) p = x; });
+  if(!p) return '<div class="bloco"><div class="vazio">Processo não encontrado.</div></div>';
 
-  var aba = E.procAba || 'resumo';
-  var pubs = pubsDoProcesso(p.id).sort(function(a,b){
-    return String(b.disponibilizada||'').localeCompare(String(a.disponibilizada||''));
-  });
-  var movs = (E.procMovimentos && E.procMovimentos.processoId === p.id) ? E.procMovimentos.itens : [];
+  var pubs = E.pubs.filter(function(x){ return x.processo === p.processo; })
+    .sort(function(a,b){ return String(b.disponibilizada).localeCompare(String(a.disponibilizada)); });
   var partes = p.partes || [];
-  var caso = p.caso_id ? acha(p.caso_id) : null;
-  var tarefasProc = p.caso_id ? tarefasDe(p.caso_id) : [];
-  var docsProc = p.caso_id ? E.docs.filter(function(d){ return d.caso_id === p.caso_id; }) : [];
 
-  var seloTriagem = p.status_triagem === 'confirmado'
-    ? '<span class="tag tag-verde">🟢 Confirmado</span>'
-    : p.status_triagem === 'ignorado'
-      ? '<span class="tag">⚪ Ignorado</span>'
-      : '<span class="tag tag-ambar">🟡 Aguardando confirmação</span>';
-
-  var acoesTriagem = p.status_triagem === 'observacao'
-    ? '<button class="bt bt-ouro" data-confirma-processo="' + p.id + '">' + ico('check') + 'Confirmar processo</button>' +
-      '<button class="bt bt-fino" data-ignora-processo="' + p.id + '">Ignorar</button>'
-    : p.status_triagem === 'ignorado'
-      ? '<button class="bt bt-fino" data-reavalia-processo="' + p.id + '">Reavaliar</button>'
-      : '';
-
-  return '<button class="voltar" data-voltar-processos="">' + ico('esq') + 'Voltar</button>' +
+  return '<button class="voltar" data-voltar-processos="">' + ico('esq') + 'Voltar aos processos</button>' +
   '<div class="cab-caso">' +
     '<div><h1 style="font-size:21px">' + esc(autorDe(p)) + '</h1>' +
-      '<div class="sub"><span class="num">' + esc(p.processo || '—') + '</span>' +
-      '<span>' + esc(p.tribunal || '') + '</span><span>' + esc(p.orgao || '') + '</span>' +
-      seloTriagem + seloConfianca(p) + '</div></div>' +
+      '<div class="sub"><span class="num">' + esc(p.processo) + '</span>' +
+      '<span>' + esc(p.tribunal) + '</span><span>' + esc(p.orgao || '') + '</span></div></div>' +
     '<div class="acoes">' +
-      acoesTriagem +
-      '<button class="bt bt-fino" data-andamento="' + esc(p.processo_num || '') + '" data-trib="' + esc(p.tribunal || '') + '" data-processo-id="' + p.id + '">' +
-        ico('relogio') + 'Linha do tempo (DataJud)</button>' +
+      '<button class="bt bt-ouro" data-andamento="' + esc(p.processo_num || '') + '" data-trib="' + esc(p.tribunal || '') + '">' +
+        ico('relogio') + 'Linha do tempo</button>' +
     '</div>' +
   '</div>' +
 
-  '<div class="assist-abas">' + PROC_ABAS.map(function(a){
-    return '<button data-proc-aba="' + a[0] + '"' + (aba === a[0] ? ' aria-pressed="true"' : '') + '>' +
-      ico(a[1]) + a[2] + '</button>';
-  }).join('') + '</div>' +
-
-  (aba === 'movimentos'   ? abaProcessoMovimentos(movs)
- : aba === 'publicacoes'  ? abaProcessoPublicacoes(pubs)
- : aba === 'partes'       ? abaProcessoPartes(partes)
- : aba === 'documentos'   ? abaProcessoDocumentos(p, docsProc)
- : aba === 'prazos'       ? abaProcessoPrazos(p, tarefasProc)
- : aba === 'ia'           ? abaProcessoIA(p)
- :                          abaProcessoResumo(p, pubs, movs, caso));
+  '<div class="grade g-2">' +
+    '<div class="bloco">' +
+      '<div class="bloco-cab"><h2>Publicações</h2><div class="dir"><span class="li-s num">' +
+        pubs.length + '</span></div></div>' +
+      pubs.map(function(x){
+        return '<div class="linha-item" style="display:block;padding:15px 18px">' +
+          '<div class="acoes" style="margin-bottom:7px">' +
+            (x.lida ? '' : '<span class="tag tag-azul"><span class="ponto"></span>nova</span>') +
+            '<span class="tag">' + esc(x.tipo || 'Publicação') + '</span>' +
+            '<span class="li-s" style="margin-left:auto">' + data(x.disponibilizada) + '</span>' +
+          '</div>' +
+          '<div class="pub-txt" data-pub-txt>' + esc(x.texto || '') + '</div>' +
+          '<div class="acoes" style="margin-top:9px">' +
+            '<button class="bt bt-fino bt-mini" data-abrir-txt="">Ler tudo</button>' +
+            (x.link ? '<a class="bt bt-fino bt-mini" href="' + esc(x.link) +
+              '" target="_blank" rel="noopener">Abrir no PJe</a>' : '') +
+            (x.lida ? '' : '<button class="bt bt-fino bt-mini" data-lida="' + x.id_cnj + '">Marcar lida</button>') +
+          '</div></div>';
+      }).join('') +
+    '</div>' +
+    '<div style="display:grid;gap:14px">' +
+      '<div class="bloco"><div class="bloco-cab"><h2>Partes</h2></div>' +
+        '<div class="bloco-corpo">' + (partes.length ? '<dl class="linhas">' +
+          partes.map(function(x){
+            return '<dt>' + (x.polo === 'A' ? 'Polo ativo' : x.polo === 'P' ? 'Polo passivo' : 'Parte') +
+              '</dt><dd>' + esc(x.nome) + '</dd>';
+          }).join('') + '</dl>' : '<div class="vazio" style="padding:14px">Sem partes registradas.</div>') +
+        '</div></div>' +
+      '<div class="bloco"><div class="bloco-cab"><h2>Resumo</h2></div>' +
+        '<div class="bloco-corpo"><dl class="linhas">' +
+          '<dt>Classe</dt><dd>' + esc(p.classe || '—') + '</dd>' +
+          '<dt>Tribunal</dt><dd>' + esc(p.tribunal || '—') + '</dd>' +
+          '<dt>Órgão</dt><dd>' + esc(p.orgao || '—') + '</dd>' +
+          '<dt>Publicações</dt><dd>' + p.publicacoes + '</dd>' +
+          '<dt>Primeira</dt><dd>' + data(p.primeira) + '</dd>' +
+          '<dt>Última</dt><dd>' + data(p.ultima) + '</dd>' +
+        '</dl></div></div>' +
+    '</div>' +
+  '</div>';
 }
 
 /* ===================================================================
@@ -2102,28 +1609,47 @@ function vistaProcesso(){
    =================================================================== */
 var ATALHOS = [
   'Qual o prazo pra recorrer de sentença na Justiça do Trabalho?',
-  'Minute uma petição inicial trabalhista pra este caso',
+  'Como fica a conversão de tempo especial depois da EC 103/2019?',
   'Rescisão indireta: o que preciso provar e qual o risco de reversão?',
   'INSS negou por falta de qualidade de segurado. Que caminhos existem?'
 ];
 
-/* Uma tela só. Antes eram três abas (perguntar / ler documento / minutar
-   peça) fazendo a mesma pergunta pra mesma IA com formulário diferente —
-   agora é um campo só: escreve o que quer, anexa PDF se tiver, e a IA
-   entende o pedido (a regra da peça virou condicional no prompt). */
 function vistaAssistente(){
-  return '<div class="aviso" style="background:var(--roxo-cl);color:#3B2F6B">' + ico('alerta') +
+  var docs = E.docs.slice().sort(function(a,b){ return new Date(b.criado_at) - new Date(a.criado_at); });
+
+  return '<div class="assist-abas">' +
+      ['perguntar','ler','minutar'].map(function(m){
+        var r = {perguntar:['faisca','Perguntar'], ler:['pasta','Ler documento'], minutar:['lista','Minutar peça']}[m];
+        return '<button data-assist="' + m + '"' + (E.assist === m ? ' aria-pressed="true"' : '') + '>' +
+          ico(r[0]) + r[1] + '</button>';
+      }).join('') +
+    '</div>' +
+
+    '<div class="aviso" style="background:var(--roxo-cl);color:#3B2F6B">' + ico('alerta') +
       '<div><b>Ela busca a fonte antes de citar, e mostra o link.</b> Súmula e acórdão só saem ' +
       'com busca feita na hora — se não achar, ela diz que não achou. Peça sai como minuta, ' +
       'com o que falta conferir listado no fim. Confira antes de assinar.</div></div>' +
-    abaPerguntar();
+
+    (E.assist === 'ler'     ? abaLer(docs)
+   : E.assist === 'minutar' ? abaMinutar()
+   :                          abaPerguntar());
+}
+
+function seletorCaso(id, rotulo, obrigatorio){
+  return '<div class="campo"><label for="' + id + '">' + rotulo + '</label>' +
+    '<select id="' + id + '">' +
+      (obrigatorio ? '' : '<option value="">— sem caso vinculado —</option>') +
+      E.casos.filter(ativo).map(function(c){
+        return '<option value="' + c.id + '"' + (E.casoCtx === c.id ? ' selected' : '') + '>' +
+          esc(c.nome) + ' · ' + esc(c.area) + '</option>';
+      }).join('') +
+    '</select></div>';
 }
 
 function abaPerguntar(){
   var msgs = E.msgs,
       conv = E.conversas.filter(function(c){ return c.titulo; }).slice(0, 12),
-      ctx  = E.conversaCtx,
-      docs = E.docs.slice().sort(function(a,b){ return new Date(b.criado_at) - new Date(a.criado_at); });
+      ctx  = E.conversaCtx;
 
   return '<div class="chat-grade">' +
     '<div class="bloco chat">' +
@@ -2142,47 +1668,26 @@ function abaPerguntar(){
       '<div class="chat-pe">' +
         '<div class="escrever">' +
           '<label class="so-leitor" for="pergunta">Sua mensagem</label>' +
-          '<textarea id="pergunta" rows="1" placeholder="Pergunte, peça uma minuta, ou anexe um PDF…"></textarea>' +
-          '<input type="file" id="arquivo" accept="application/pdf" class="oculto" multiple>' +
-          '<button class="bt-voz" id="btAnexoDoc" aria-label="Anexar PDF" title="Anexar um PDF">' +
-            ico('clipe') + '</button>' +
+          '<textarea id="pergunta" rows="1" placeholder="Pergunte, ou aperte o microfone e fale…"></textarea>' +
           '<button class="bt-voz" id="btVoz" aria-label="Ditar" title="Ditar (fale em português)">' +
             ico('microfone') + '</button>' +
           '<button class="bt-enviar" id="btPerguntar" aria-label="Enviar">' + ico('enviar') + '</button>' +
         '</div>' +
-        '<div class="anexos" id="assistAnexo"></div>' +
         '<p class="chat-dica" id="chatDica">Enter envia · Shift+Enter quebra linha</p>' +
         '<p class="erro" id="erroAssist"></p>' +
       '</div>' +
     '</div>' +
 
-    '<div style="display:grid;gap:14px;align-content:start">' +
-      '<div class="bloco">' +
-        '<div class="bloco-cab"><h2>Conversas</h2></div>' +
-        (conv.length ? conv.map(function(c){
-          var caso = c.caso_id ? acha(c.caso_id) : null;
-          return '<button class="linha-item' + (c.id === E.conversaId ? ' aberta' : '') +
-            '" data-conversa="' + c.id + '">' +
-            '<span class="li-p"><span class="li-t">' + esc(c.titulo) + '</span>' +
-            '<span class="li-s">' + (caso ? esc(caso.nome) + ' · ' : '') + desde(c.mexida_at) + '</span></span>' +
-            '</button>';
-        }).join('') : '<div class="vazio">' + ico('faisca') + 'Nenhuma conversa ainda.</div>') +
-      '</div>' +
-
-      /* a lista de documentos morava na aba "Ler documento" — como a aba
-         sumiu, ela vem pra cá pra não perder o histórico do que já foi lido */
-      '<div class="bloco">' +
-        '<div class="bloco-cab"><h2>Documentos lidos</h2>' +
-          '<div class="dir"><span class="li-s num">' + docs.length + '</span></div></div>' +
-        (docs.length ? docs.slice(0, 10).map(function(d){
-          var caso = d.caso_id ? acha(d.caso_id) : null;
-          return '<button class="linha-item" data-documento="' + d.id + '">' +
-            '<span class="icone-cx" style="background:var(--linha-2);color:var(--cinza)">' + ico('pasta') + '</span>' +
-            '<span class="li-p"><span class="li-t">' + esc(d.nome) + '</span>' +
-            '<span class="li-s">' + (caso ? esc(caso.nome) + ' · ' : '') +
-              (d.analise_at ? esc(d.tipo || 'lido') : 'não lido ainda') + '</span></span></button>';
-        }).join('') : '<div class="vazio">' + ico('pasta') + 'Nenhum documento ainda.</div>') +
-      '</div>' +
+    '<div class="bloco">' +
+      '<div class="bloco-cab"><h2>Conversas</h2></div>' +
+      (conv.length ? conv.map(function(c){
+        var caso = c.caso_id ? acha(c.caso_id) : null;
+        return '<button class="linha-item' + (c.id === E.conversaId ? ' aberta' : '') +
+          '" data-conversa="' + c.id + '">' +
+          '<span class="li-p"><span class="li-t">' + esc(c.titulo) + '</span>' +
+          '<span class="li-s">' + (caso ? esc(caso.nome) + ' · ' : '') + desde(c.mexida_at) + '</span></span>' +
+          '</button>';
+      }).join('') : '<div class="vazio">' + ico('faisca') + 'Nenhuma conversa ainda.</div>') +
     '</div>' +
   '</div>';
 }
@@ -2191,9 +1696,9 @@ function chatVazio(){
   return '<div class="chat-vazio">' +
     '<span class="icone-cx" style="background:var(--roxo-cl);color:var(--roxo);width:44px;height:44px">' +
       ico('faisca') + '</span>' +
-    '<b>Pergunte, peça uma peça, ou anexe um documento</b>' +
-    '<span>É tudo no mesmo lugar: dúvida de lei, minuta de petição ou PDF pra ela destrinchar. ' +
-    'Ela busca antes de citar e mostra de onde tirou.</span>' +
+    '<b>Pergunte o que quiser</b>' +
+    '<span>Ela busca na lei e na jurisprudência antes de responder, e mostra de onde tirou. ' +
+    'Você pode continuar perguntando em cima da resposta.</span>' +
     '<div class="atalhos">' + ATALHOS.map(function(a){
       return '<button data-atalho="' + esc(a) + '">' + esc(a) + '</button>';
     }).join('') + '</div>' +
@@ -2202,29 +1707,81 @@ function chatVazio(){
 
 function bolha(m){
   if(m.papel === 'user')
-    return '<div class="msg msg-eu"><div class="balao">' + esc(m.texto) +
-      (m.anexo ? '<div class="li-s" style="margin-top:6px">' + ico('clipe') + ' ' + esc(m.anexo) + '</div>' : '') +
-      '</div></div>';
-  /* documento lido entra na conversa como uma bolha com a análise inteira,
-     no lugar da aba separada que existia antes */
-  if(m.analise)
-    return '<div class="msg msg-ia"><span class="msg-av">' + ico('faisca') + '</span>' +
-      '<div class="balao">' + htmlAnalise(m.analise, m.docId) + '</div></div>';
+    return '<div class="msg msg-eu"><div class="balao">' + esc(m.texto) + '</div></div>';
   var dentro = m.pensando && !m.texto
     ? '<span class="pontinhos"><i></i><i></i><i></i></span>'
     : (m.buscando ? '<div class="buscando">' + ico('busca') + 'Consultando: ' + esc(m.buscando) + '</div>' : '') +
       textoRico(m.texto) +
-      (m.fontes && m.fontes.length ? pintaFontes(m.fontes) : '') +
-      (m.zapPara
-        ? '<div class="acoes" style="margin-top:11px"><a class="bt bt-ouro bt-mini" href="' +
-          zap(m.zapPara.whatsapp, m.texto) + '" target="_blank" rel="noopener">' +
-          ico('zap') + 'Mandar pra ' + esc(primeiro(m.zapPara.nome)) + '</a></div>' +
-          '<p class="uso">Revise antes de enviar: sai em nome do escritório, e a OAB não ' +
-          'permite promessa de resultado nem menção a valores.</p>'
-        : '');
+      (m.fontes && m.fontes.length ? pintaFontes(m.fontes) : '');
   return '<div class="msg msg-ia">' +
     '<span class="msg-av">' + ico('faisca') + '</span>' +
     '<div class="balao">' + dentro + '</div></div>';
+}
+
+function abaLer(docs){
+  return '<div class="grade g-2">' +
+    '<div class="bloco">' +
+      '<div class="bloco-cab"><h2>Ler um documento</h2></div>' +
+      '<div class="bloco-corpo">' +
+        '<label class="solta" id="solta">' +
+          '<input type="file" id="arquivo" accept="application/pdf" class="so-leitor">' +
+          ico('pasta') +
+          '<b>Escolher um PDF</b>' +
+          '<span>Petição, contestação, sentença, laudo do INSS, CNIS, PPP</span>' +
+        '</label>' +
+        seletorCaso('docCaso', 'De qual caso?', false) +
+        '<div class="acoes" style="margin-top:12px">' +
+          '<button class="bt bt-ouro" id="btLer" disabled>' + ico('faisca') + 'Ler e destrinchar</button>' +
+        '</div>' +
+        '<p class="erro" id="erroAssist"></p>' +
+        '<div id="saidaAssist"></div>' +
+      '</div>' +
+    '</div>' +
+    '<div class="bloco">' +
+      '<div class="bloco-cab"><h2>Já lidos</h2><div class="dir"><span class="li-s num">' +
+        docs.length + '</span></div></div>' +
+      (docs.length ? docs.map(function(d){
+        var caso = d.caso_id ? acha(d.caso_id) : null;
+        return '<button class="linha-item" data-documento="' + d.id + '">' +
+          '<span class="icone-cx" style="background:var(--linha-2);color:var(--cinza)">' + ico('pasta') + '</span>' +
+          '<span class="li-p"><span class="li-t">' + esc(d.nome) + '</span>' +
+          '<span class="li-s">' + (caso ? esc(caso.nome) + ' · ' : '') +
+            (d.analise ? esc(d.tipo || 'lido') : 'não lido ainda') + '</span></span>' +
+          '<span class="li-d"><span class="li-s">' + desde(d.criado_at) + '</span></span></button>';
+      }).join('') : '<div class="vazio">' + ico('pasta') + 'Nenhum documento ainda.</div>') +
+    '</div>' +
+  '</div>';
+}
+
+function abaMinutar(){
+  return '<div class="grade g-2">' +
+    '<div class="bloco">' +
+      '<div class="bloco-cab"><h2>Minutar peça</h2></div>' +
+      '<div class="bloco-corpo">' +
+        seletorCaso('minutaCaso', 'Para qual caso', true) +
+        '<div class="campo"><label for="tipoPeca">Que peça</label>' +
+          '<select id="tipoPeca">' +
+            '<option>Petição inicial trabalhista</option>' +
+            '<option>Petição inicial previdenciária</option>' +
+            '<option>Réplica</option>' +
+            '<option>Razões finais</option>' +
+            '<option>Recurso ordinário</option>' +
+            '<option>Contrarrazões</option>' +
+            '<option>Recurso administrativo ao INSS</option>' +
+          '</select></div>' +
+        '<div class="acoes" style="margin-top:12px">' +
+          '<button class="bt bt-ouro" id="btMinutar">' + ico('faisca') + 'Minutar</button>' +
+        '</div>' +
+        '<p class="uso">Ela usa a ficha do caso e tudo que já foi lido dos documentos dele. ' +
+        'Quanto mais documento lido, menos colchete pra você preencher.</p>' +
+        '<p class="erro" id="erroAssist"></p>' +
+      '</div>' +
+    '</div>' +
+    '<div class="bloco" id="caixaMinuta">' +
+      '<div class="bloco-cab"><h2>Minuta</h2></div>' +
+      '<div class="vazio">' + ico('lista') + 'Escolha o caso e a peça.</div>' +
+    '</div>' +
+  '</div>';
 }
 
 /* ---------- saídas ---------- */
@@ -2233,6 +1790,13 @@ function pintaFontes(fontes){
   return '<h4>Fontes consultadas</h4><ul class="fontes">' + fontes.map(function(f){
     return '<li><a href="' + esc(f.url) + '" target="_blank" rel="noopener">' + esc(f.titulo) + '</a></li>';
   }).join('') + '</ul>';
+}
+
+function pintaResposta(r){
+  $('saidaAssist').innerHTML =
+    '<div class="resposta">' + textoRico(r.resposta) + pintaFontes(r.fontes) +
+    '<p class="uso">' + (r.uso && r.uso.buscas ? r.uso.buscas + ' busca(s) na web · ' : '') +
+    'Confira as fontes antes de usar em peça.</p></div>';
 }
 
 /* markdown mínimo: é o que a IA usa e o que dá pra ler */
@@ -2255,9 +1819,7 @@ function textoRico(t){
   return saida;
 }
 
-/* Devolve o HTML da análise (a bolha do chat pinta isso). Antes escrevia
-   direto num #saidaAssist da aba que não existe mais. */
-function htmlAnalise(a, docId){
+function pintaAnaliseDoc(a, docId){
   function bloco(titulo, arr){
     if(!arr || !arr.length) return '';
     return '<h4>' + titulo + '</h4><ul class="itens">' +
@@ -2290,10 +1852,14 @@ function htmlAnalise(a, docId){
       '<button class="passo" data-passo="peca">' +
         '<span class="icone-cx" style="background:var(--ambar-cl);color:var(--ambar)">' + ico('pasta') + '</span>' +
         '<b>Escrever a peça</b><span>Já respondendo o que está aqui</span></button>' +
+      '<button class="passo" data-passo="conversar">' +
+        '<span class="icone-cx" style="background:var(--roxo-cl);color:var(--roxo)">' + ico('faisca') + '</span>' +
+        '<b>Perguntar sobre ele</b><span>Conversar com o documento aberto</span></button>' +
     '</div>' +
+    '<div id="saidaPasso"></div>' +
   '</div>';
 
-  return '<div class="resposta">' +
+  $('saidaAssist').innerHTML = '<div class="resposta">' +
     (a.alerta ? '<div class="aviso" style="margin-bottom:14px">' + ico('alerta') +
       '<div><b>' + esc(a.alerta) + '</b></div></div>' : '') +
     '<span class="tag tag-roxo">' + esc(a.tipo_documento) + '</span>' +
@@ -2315,10 +1881,9 @@ function htmlAnalise(a, docId){
    VISTA: WhatsApp
    =================================================================== */
 function vistaWhatsapp(){
-  /* Com a Cloud API não existe sessão pra cair nem QR pra escanear: ou o
-     número está conectado no Kapso, ou não está. */
-  var conexao = E.wpp.conexao || {};
-  if(!conexao.conectado && !conexao.modo_teste) return telaConectarWpp(conexao);
+  var ses = E.wpp.sessao || {};
+
+  if(ses.estado !== 'conectado') return telaParear(ses);
 
   var t = E.wpp.busca.trim().toLowerCase();
   var caixa = E.wpp.caixa.filter(function(c){
@@ -2335,10 +1900,7 @@ function vistaWhatsapp(){
     '<div class="bloco wpp-lista">' +
       '<div class="bloco-cab">' +
         '<h2>Conversas</h2>' +
-        '<div class="dir">' + (conexao.modo_teste
-          ? '<span class="tag tag-ambar" title="Número sandbox do Kapso — só conversa com números cadastrados como teste">' +
-            '<span class="ponto"></span>modo de teste</span>'
-          : '<span class="tag tag-verde"><span class="ponto"></span>conectado</span>') + '</div>' +
+        '<div class="dir"><span class="tag tag-verde"><span class="ponto"></span>conectado</span></div>' +
       '</div>' +
       '<div class="wpp-busca">' +
         '<label class="so-leitor" for="wppBusca">Buscar conversa</label>' +
@@ -2374,42 +1936,45 @@ function avatar(c){
   return '<span class="wpp-av wpp-av-txt">' + esc(iniciais(c.exibir)) + '</span>';
 }
 
-/* Sem QR Code: o número é conectado uma vez no painel do Kapso (fluxo de
-   coexistência, que mantém o WhatsApp Business funcionando no celular).
-   Aqui a tela só mostra em que pé está essa conexão. */
-function telaConectarWpp(conexao){
-  var motivo = conexao && conexao.motivo
-    ? '<p class="' + (conexao.sandbox ? 'uso' : 'erro') + '" style="margin-bottom:6px">' +
-      esc(conexao.motivo) + '</p>' : '';
+function telaParear(ses){
+  var erro = ses.erro
+    ? '<p class="erro" style="margin-bottom:6px">' + esc(ses.erro) + '</p>' : '';
 
+  var meio;
+  if(ses.estado === 'qr' && ses.qr){
+    meio =
+      '<img class="qr" src="' + esc(ses.qr) + '" alt="QR Code para conectar o WhatsApp" ' +
+        'width="320" height="320">' +
+      '<ol class="passos-qr">' +
+        '<li>Abra o WhatsApp no celular</li>' +
+        '<li>Toque em <b>Mais opções</b> › <b>Aparelhos conectados</b></li>' +
+        '<li>Toque em <b>Conectar aparelho</b></li>' +
+        '<li>Aponte a câmera para este código</li>' +
+      '</ol>' +
+      '<p class="uso">A tela abre sozinha assim que conectar.</p>';
+  } else {
+    meio =
+      '<div class="qr-espera">' +
+        '<span class="girando" style="border-color:rgba(22,41,74,.2);' +
+          'border-top-color:var(--marinho);width:22px;height:22px"></span>' +
+        '<b>Gerando o código</b>' +
+        '<span>Só um instante.</span>' +
+      '</div>';
+  }
+
+  /* Uma tela só, com o código no meio. O aviso sobre o número fica numa
+     linha porque quem escaneia é o o advogado — ele não esteve nas conversas
+     em que isso foi combinado. */
   return '<div class="parear">' +
     '<div class="bloco">' +
-      '<div class="bloco-cab" style="justify-content:center"><h2>Conectar o WhatsApp</h2></div>' +
-      '<div class="bloco-corpo qr-cx">' + motivo +
-        '<div class="qr-espera" style="border:0;padding:18px 0">' +
-          ico('zap', ' style="width:46px;height:46px;color:var(--cinza-2)"') +
-          '<p class="uso" style="max-width:360px;margin-top:10px">' +
-            'A conexão é feita uma vez, no painel do Kapso, pelo fluxo ' +
-            '<b>"Connect a WhatsApp Business App"</b>. O número continua ' +
-            'funcionando normalmente no celular — as mensagens aparecem nos dois lados.' +
-          '</p>' +
-        '</div>' +
-        '<a class="bt bt-ouro" href="https://app.kapso.ai" target="_blank" rel="noopener">' +
-          'Abrir o Kapso' + '</a>' +
-        '<button class="bt bt-fino" id="btConfereWpp" style="margin-left:8px">Já conectei, conferir</button>' +
+      '<div class="bloco-cab" style="justify-content:center">' +
+        '<h2>Conectar o WhatsApp</h2>' +
       '</div>' +
+      '<div class="bloco-corpo qr-cx">' + erro + meio + '</div>' +
       '<p class="nota-numero">' + ico('alerta') +
-        'Não desinstale o WhatsApp Business do celular e abra ele pelo menos uma vez a cada 13 dias, ' +
-        'senão a Meta derruba a conexão.</p>' +
+        'Use o número do escritório, não o pessoal.</p>' +
     '</div>' +
   '</div>';
-}
-
-function confereConexaoWpp(){
-  var bt = $('btConfereWpp'); if(bt) ocupado(bt, 'Conferindo…');
-  return api('/functions/v1/kapso', {method:'POST', body: JSON.stringify({acao:'status'})})
-    .then(function(r){ E.wpp.conexao = r; pinta(); })
-    .catch(function(e){ E.wpp.conexao = {conectado:false, motivo:e.message}; pinta(); });
 }
 
 function conversaWpp(c){
@@ -2482,161 +2047,6 @@ function fone(t){
   if(d.length === 13) return '+' + d.slice(0,2) + ' (' + d.slice(2,4) + ') ' + d.slice(4,9) + '-' + d.slice(9);
   if(d.length === 12) return '+' + d.slice(0,2) + ' (' + d.slice(2,4) + ') ' + d.slice(4,8) + '-' + d.slice(8);
   return t;
-}
-
-/* ===================================================================
-   VISTA: Gmail
-   =================================================================== */
-function vistaGmail(){
-  var st = E.gmail.status || {};
-  if(!st.conectado) return telaConectarGmail(st);
-
-  var t = E.gmail.busca.trim().toLowerCase();
-  var porThread = {};
-  E.gmail.caixa.forEach(function(m){
-    var atual = porThread[m.thread_id];
-    if(!atual || new Date(m.recebida_em || 0) > new Date(atual.recebida_em || 0)) porThread[m.thread_id] = m;
-  });
-  var threads = Object.keys(porThread).map(function(k){ return porThread[k]; })
-    .sort(function(a,b){ return new Date(b.recebida_em || 0) - new Date(a.recebida_em || 0); });
-  if(t){
-    threads = threads.filter(function(m){
-      return ((m.assunto||'') + ' ' + (m.de||'') + ' ' + (m.previa||'')).toLowerCase().indexOf(t) > -1;
-    });
-  }
-
-  var pasta = E.gmail.pasta || 'inbox';
-  threads = threads.filter(function(m){ return bateNaPasta(m, pasta); });
-
-  var abertaId = E.gmail.abertaThread;
-  var mensagensThread = abertaId ? E.gmail.caixa.filter(function(m){ return m.thread_id === abertaId; })
-    .sort(function(a,b){ return new Date(a.recebida_em || 0) - new Date(b.recebida_em || 0); }) : [];
-
-  var PASTAS = [['inbox','Caixa de entrada'], ['enviados','Enviados'], ['tudo','Tudo']];
-
-  return '<div class="gmail-grade">' +
-    '<div class="bloco wpp-lista">' +
-      '<div class="bloco-cab"><h2>Gmail</h2><div class="dir">' +
-        '<button class="bt bt-fino bt-mini" id="btSincronizaGmail" title="Sincronizar agora">' + ico('relogio') + '</button>' +
-      '</div></div>' +
-      '<div style="padding:0 14px 10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">' +
-        (st.email ? '<span class="li-s" style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(st.email) + '</span>' : '') +
-        '<button class="bt bt-fino bt-mini" id="btAssinaturaGmail" title="Assinatura" style="margin-left:auto;flex:none">' + ico('caneta') + '</button>' +
-        '<button class="bt bt-ouro bt-mini" id="btNovoEmail" style="flex:none;white-space:nowrap">' + ico('mais') + 'Novo e-mail</button>' +
-      '</div>' +
-      '<div class="gmail-pastas">' + PASTAS.map(function(p){
-        return '<button class="' + (pasta === p[0] ? 'ativa' : '') + '" data-pasta-gmail="' + p[0] + '">' + p[1] + '</button>';
-      }).join('') + '</div>' +
-      '<div class="wpp-busca">' +
-        '<label class="so-leitor" for="gmailBusca">Buscar e-mail</label>' +
-        '<input id="gmailBusca" class="busca" type="search" placeholder="Buscar assunto ou remetente…" value="' + esc(E.gmail.busca) + '">' +
-      '</div>' +
-      (E.gmail.sincronizando ? '<p class="li-s" style="padding:0 14px 8px">' +
-        '<span class="girando" style="width:12px;height:12px;border-width:2px;display:inline-block;vertical-align:-2px;margin-right:6px"></span>' +
-        'Sincronizando histórico…</p>' : '') +
-      '<div class="wpp-rolagem">' +
-        (threads.length ? threads.map(function(m){
-          var lida = gmailLida(m.thread_id);
-          var naoLida = !lida && !m.enviada_por_mim;
-          return '<button class="wpp-item' + (m.thread_id === abertaId ? ' aberta' : '') + '" data-abre-thread-gmail="' + esc(m.thread_id) + '">' +
-            '<span class="wpp-av wpp-av-txt">' + esc(iniciais(m.enviada_por_mim ? (m.para||'?') : (m.de||'?'))) + '</span>' +
-            '<span class="li-p">' +
-              '<span class="li-t"' + (naoLida ? ' style="font-weight:700"' : '') + '>' +
-                esc(m.assunto || '(sem assunto)') + '</span>' +
-              '<span class="li-s">' +
-                esc(m.enviada_por_mim ? ('Para: ' + (m.para||'')) : (m.de || '—')) +
-                (m.previa ? ' — ' + esc(m.previa) : '') +
-              '</span>' +
-            '</span>' +
-            '<span class="li-d"><span class="li-s">' + (m.recebida_em ? desde(m.recebida_em) : '') + '</span>' +
-              (naoLida ? '<span class="ponto" style="color:var(--marinho);margin-left:auto"></span>' : '') +
-            '</span></button>';
-        }).join('') : '<div class="vazio">' + ico('email') + 'Nada aqui.</div>') +
-      '</div>' +
-    '</div>' +
-    (abertaId ? threadGmail(mensagensThread)
-              : '<div class="bloco" style="display:grid;place-items:center;min-height:420px">' +
-                '<div class="vazio">' + ico('email') + 'Escolha um e-mail à esquerda.</div></div>') +
-  '</div>';
-}
-
-/* Filtra por pasta usando os labelIds que o Gmail manda. Mensagem
-   sincronizada antes dessa coluna existir vem com labels vazio — nesse
-   caso trata como "recebida" (a não ser que já saibamos que foi enviada
-   por nós), pra não sumir da caixa de entrada. */
-function bateNaPasta(m, pasta){
-  var labels = m.labels || [];
-  if(pasta === 'tudo') return true;
-  if(pasta === 'enviados') return !!m.enviada_por_mim || labels.indexOf('SENT') > -1;
-  // inbox
-  if(m.enviada_por_mim) return false;
-  if(!labels.length) return true;
-  return labels.indexOf('INBOX') > -1;
-}
-
-function telaConectarGmail(st){
-  var erro = st.erro ? '<p class="erro" style="margin-bottom:6px">' + esc(st.erro) + '</p>' : '';
-  return '<div class="parear">' +
-    '<div class="bloco">' +
-      '<div class="bloco-cab" style="justify-content:center"><h2>Conectar o Gmail</h2></div>' +
-      '<div class="bloco-corpo qr-cx">' + erro +
-        '<div class="qr-espera" style="border:0;padding:20px 0">' +
-          ico('email', ' style="width:48px;height:48px;color:var(--cinza-2)"') +
-          '<p class="uso" style="max-width:320px;margin-top:8px">' +
-            'Você vai escolher a conta na própria tela do Google — o painel nunca vê sua senha.' +
-          '</p>' +
-        '</div>' +
-        '<button class="bt bt-ouro" id="btConectaGmail">Conectar Gmail</button>' +
-      '</div>' +
-    '</div>' +
-  '</div>';
-}
-
-function threadGmail(msgs){
-  var ultima = msgs[msgs.length - 1] || {};
-  return '<div class="bloco chat wpp-chat">' +
-    '<div class="bloco-cab">' +
-      '<div style="min-width:0">' +
-        '<h2 style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(ultima.assunto || '(sem assunto)') + '</h2>' +
-        '<div class="li-s">' + msgs.length + ' mensage' + (msgs.length === 1 ? 'm' : 'ns') + ' nesta conversa</div>' +
-      '</div>' +
-    '</div>' +
-    '<div class="chat-corpo" id="gmailCorpo">' +
-      msgs.map(function(m){
-        return '<div class="msg ' + (m.enviada_por_mim ? 'msg-eu' : 'msg-ia') + '">' +
-          '<div class="balao wpp-balao" style="max-width:90%">' +
-            '<div class="li-s" style="margin-bottom:4px">' +
-              esc(m.enviada_por_mim ? ('Para: ' + (m.para||'')) : ('De: ' + (m.de||''))) +
-            '</div>' +
-            (m.corpo != null
-              // e-mail HTML pode vir de qualquer remetente — nunca confiável.
-              // Renderiza num iframe travado (sandbox="", sem allow-scripts
-              // nem allow-same-origin) em vez de jogar o HTML cru na página;
-              // é a mesma técnica que webmails de verdade usam pra abrir
-              // e-mail de estranho sem rodar script nenhum.
-              ? (m.html
-                  ? '<iframe class="gmail-corpo-html" sandbox="" srcdoc="' + esc(m.corpo) + '"></iframe>'
-                  : '<div style="white-space:pre-wrap">' + esc(m.corpo) + '</div>')
-              : (E.gmail.carregandoCorpo === m.thread_id
-                  ? '<span class="li-s"><span class="pontinhos"><i></i><i></i><i></i></span></span>'
-                  : '<button class="bt bt-fino bt-mini" data-abre-corpo-gmail="' + esc(m.gmail_id) + '">Carregar o corpo do e-mail</button>')) +
-            '<span class="msg-hora">' + (m.recebida_em ? hora(m.recebida_em) + ' · ' + data(m.recebida_em) : '') + '</span>' +
-          '</div></div>';
-      }).join('') +
-    '</div>' +
-    '<div class="chat-pe">' +
-      '<div class="escrever">' +
-        '<label class="so-leitor" for="gmailTexto">Resposta</label>' +
-        '<textarea id="gmailTexto" rows="2" placeholder="Escreva a resposta…"></textarea>' +
-        '<button class="bt-voz" id="btAnexoGmail" aria-label="Anexar arquivo" title="Anexar arquivo">' + ico('clipe') + '</button>' +
-        '<button class="bt-enviar" id="btEnviaGmail" aria-label="Enviar">' + ico('enviar') + '</button>' +
-      '</div>' +
-      '<input type="file" id="arqGmail" class="oculto" multiple>' +
-      '<div class="anexos" id="gmailAnexos"></div>' +
-      '<p class="chat-dica">Responde pra ' + esc(ultima.enviada_por_mim ? (ultima.para||'') : (ultima.de||'')) + '</p>' +
-      '<p class="erro" id="erroGmail"></p>' +
-    '</div>' +
-  '</div>';
 }
 
 /* ===================================================================
@@ -2877,12 +2287,12 @@ function varrerDiario(bt){
     .catch(function(e){ alert('Não deu pra buscar no Diário: ' + e.message); pinta(); });
 }
 
-function verAndamento(processo, tribunal, processoId){
+function verAndamento(processo, tribunal){
   abreModal('Andamento do processo',
     '<div class="vazio"><span class="girando" style="border-color:rgba(22,41,74,.2);border-top-color:var(--marinho)"></span>' +
     '<div style="margin-top:10px">Consultando o DataJud do CNJ…</div></div>', '');
   api('/functions/v1/cnj', {
-    method:'POST', body: JSON.stringify({acao:'andamento', processo:processo, tribunal:tribunal, processo_id:processoId || null})
+    method:'POST', body: JSON.stringify({acao:'andamento', processo:processo, tribunal:tribunal})
   })
   .then(function(r){
     if(!r.encontrado) return abreModal('Andamento do processo',
@@ -2898,70 +2308,8 @@ function verAndamento(processo, tribunal, processoId){
           (q.length >= 8 ? q.slice(6,8) + '/' + q.slice(4,6) + '/' + q.slice(0,4) : '—') +
           '</div><div class="trilha-t">' + esc(m.nome) + '</div></div>';
       }).join('') + '</div>', '');
-    /* o backend já gravou em processo_movimentos — recarrega pra timeline
-       e a aba "Movimentações" do processo mostrarem sem precisar buscar de novo */
-    if(processoId) carregaMovimentosProcesso(processoId).then(function(){ if(E.processoAberto === processoId) pinta(); });
   })
   .catch(function(e){ abreModal('Andamento do processo', '<p class="erro">' + esc(e.message) + '</p>', ''); });
-}
-
-/* Preenchimento manual dos campos que nem sempre vêm de graça (valor da
-   causa, prioridades...) — sempre vence a extração por IA, ver cnj/index.ts. */
-function modalEditaProcesso(id){
-  var p = null;
-  E.processos.forEach(function(x){ if(x.id === id) p = x; });
-  if(!p) return;
-  abreModal('Editar processo',
-    '<div class="campo"><label for="epValor">Valor da causa (R$)</label>' +
-      '<input id="epValor" type="number" step="0.01" value="' + (p.valor_causa != null ? esc(p.valor_causa) : '') + '"></div>' +
-    '<div class="dupla">' +
-      '<div class="campo"><label for="epAutuado">Autuado em</label>' +
-        '<input id="epAutuado" type="date" value="' + esc(p.autuado_em || '') + '"></div>' +
-      '<div class="campo"><label for="epGratuita">Justiça gratuita</label><select id="epGratuita">' +
-        '<option value="">Não informado</option>' +
-        '<option value="sim"' + (p.justica_gratuita === true ? ' selected' : '') + '>Sim</option>' +
-        '<option value="nao"' + (p.justica_gratuita === false ? ' selected' : '') + '>Não</option>' +
-      '</select></div>' +
-    '</div>' +
-    '<div class="campo" style="margin:0"><label for="epPrioridades">Prioridade(s)</label>' +
-      '<input id="epPrioridades" value="' + esc((p.prioridades || []).join(', ')) + '" placeholder="idoso, acidente de trabalho…"></div>' +
-    '<p class="uso" style="margin:-8px 0 0">Separe por vírgula.</p>' +
-    '<p class="erro" id="erroEditaProcesso"></p>',
-    '<button class="bt bt-fino" data-fecha="">Cancelar</button>' +
-    '<button class="bt bt-ouro" id="btSalvaEdicaoProcesso" data-processo-id="' + p.id + '">Salvar</button>');
-}
-
-function salvaEdicaoProcesso(id){
-  var bt = $('btSalvaEdicaoProcesso'); bt.disabled = true;
-  var valor = $('epValor').value.trim();
-  var gratuita = $('epGratuita').value;
-  var prioridades = $('epPrioridades').value.split(',').map(function(x){ return x.trim(); }).filter(Boolean);
-
-  api('/rest/v1/processos?id=eq.' + id, {
-    method:'PATCH', headers:{'Prefer':'return=minimal'},
-    body: JSON.stringify({
-      valor_causa: valor ? Number(valor) : null,
-      autuado_em: $('epAutuado').value || null,
-      justica_gratuita: gratuita === 'sim' ? true : gratuita === 'nao' ? false : null,
-      prioridades: prioridades.length ? prioridades : null,
-    })
-  })
-  .then(carrega).then(function(){ fechaModal(); pinta(); })
-  .catch(function(e){ bt.disabled = false; var el = $('erroEditaProcesso'); if(el) el.textContent = e.message; });
-}
-
-/* ---------- ações de triagem de processo ---------- */
-function carregaMovimentosProcesso(id){
-  return api('/rest/v1/processo_movimentos?processo_id=eq.' + id + '&select=*&order=data_movimento.desc')
-    .then(function(r){ E.procMovimentos = {processoId:id, itens:r || []}; })
-    .catch(function(){ /* silencioso: a aba só fica vazia */ });
-}
-
-function acaoProcesso(id, acaoNome){
-  api('/functions/v1/processos', {method:'POST', body: JSON.stringify({acao:acaoNome, processo_id:id})})
-    .then(function(){ return carrega(); })
-    .then(pinta)
-    .catch(function(e){ alert('Não deu: ' + e.message); });
 }
 
 /* ---------- ações da assistente ---------- */
@@ -3022,23 +2370,14 @@ function garanteConversa(){
     method:'POST', headers:{'Prefer':'return=representation'},
     body: JSON.stringify({
       caso_id: E.conversaCtx.caso || null,
-      documento_id: E.conversaCtx.documento || null,
-      processo_id: E.conversaCtx.processo || null
+      documento_id: E.conversaCtx.documento || null
     })
   }).then(function(r){ E.conversaId = r[0].id; return E.conversaId; });
 }
 
 function pergunta(){
   var cx = $('pergunta'), texto = cx.value.trim();
-  if(E.respondendo) return;
-  /* um campo só: com PDF anexado a IA lê o documento, sem PDF é conversa
-     (inclusive pedido de peça — a regra da minuta está no prompt dela) */
-  if((E.assistArquivos || []).length){
-    cx.value = ''; cx.style.height = 'auto';
-    mandaArquivo(texto);
-    return;
-  }
-  if(!texto) return;
+  if(!texto || E.respondendo) return;
   erroAssist('');
   cx.value = ''; cx.style.height = 'auto';
 
@@ -3197,80 +2536,84 @@ function ajustaAltura(cx){
   cx.style.height = Math.min(cx.scrollHeight, 170) + 'px';
 }
 
-/* PDF anexado na conversa: sobe pro cofre, vira linha em `documentos` e
-   a análise volta como bolha da IA — é o que a aba "Ler documento" fazia
-   num formulário separado. */
-function mandaArquivo(texto){
-  var fila = (E.assistArquivos || []).slice();
-  if(!fila.length) return;
-  var grande = fila.filter(function(f){ return f.size > 28 * 1024 * 1024; });
-  if(grande.length){ erroAssist("Arquivo grande demais (máximo 28 MB): " + grande[0].name); return; }
-  erroAssist("");
+function mandaArquivo(){
+  var f = $('arquivo').files[0], bt = $('btLer');
+  if(!f){ erroAssist('Escolha um PDF.'); return; }
+  if(f.size > 28 * 1024 * 1024){ erroAssist('Arquivo grande demais (máximo 28 MB).'); return; }
+  erroAssist('');
+  ocupado(bt, 'Enviando…');
 
-  E.assistArquivos = [];
-  E.msgs.push({papel:"user", texto:texto || (fila.length > 1 ? "Leia estes documentos." : "Leia este documento."),
-               anexo:fila.map(function(f){ return f.name; }).join(", ")});
-  E.respondendo = true;
-  pinta(); rolaFim();
-
-  /* um de cada vez: cada PDF é uma leitura pesada da IA, e a análise de
-     cada um entra como uma bolha própria na conversa */
-  var passo = fila.reduce(function(antes, f){
-    return antes.then(function(){ return leUmDocumento(f); });
-  }, Promise.resolve());
-
-  passo
-    .catch(function(e){ erroAssist(e.message); })
-    .then(function(){ E.respondendo = false; return carrega(); })
-    .then(function(){ pinta(); rolaFim(); });
-}
-
-function leUmDocumento(f){
-  E.msgs.push({papel:"assistant", texto:"", pensando:true});
-  pinta(); rolaFim();
-
-  var caminho = Date.now() + "-" + f.name.replace(/[^w.-]+/g, "_");
+  var caminho = Date.now() + '-' + f.name.replace(/[^\w.\-]+/g, '_');
 
   /* o arquivo vai pro cofre privado do Supabase; a IA lê de lá pelo
      servidor, então o PDF nunca passa pela chave da IA no navegador */
-  return fetch(URL_SB + "/storage/v1/object/documentos/" + encodeURIComponent(caminho), {
-    method:"POST",
+  fetch(URL_SB + '/storage/v1/object/documentos/' + encodeURIComponent(caminho), {
+    method:'POST',
     headers:{
-      "apikey": ANON,
-      "Authorization": "Bearer " + (sessao ? sessao.access_token : ""),
-      "Content-Type": f.type || "application/pdf"
+      'apikey': ANON,
+      'Authorization': 'Bearer ' + (sessao ? sessao.access_token : ''),
+      'Content-Type': f.type || 'application/pdf'
     },
     body: f
   })
-  .then(function(r){ if(!r.ok) throw new Error("não deu pra guardar o arquivo"); })
+  .then(function(r){ if(!r.ok) throw new Error('não deu pra guardar o arquivo'); })
   .then(function(){
-    return api("/rest/v1/documentos", {
-      method:"POST", headers:{"Prefer":"return=representation"},
+    return api('/rest/v1/documentos', {
+      method:'POST', headers:{'Prefer':'return=representation'},
       body: JSON.stringify({
         nome:f.name, caminho:caminho, tamanho:f.size,
-        caso_id: E.conversaCtx.caso || null
+        caso_id: $('docCaso').value || null
       })
     });
   })
   .then(function(linhas){
     var doc = linhas[0];
-    return api("/functions/v1/advogado", {
-      method:"POST", body: JSON.stringify({acao:"ler", documento_id:doc.id})
+    ocupado($('btLer'), 'Lendo…');
+    $('saidaAssist').innerHTML = '<div class="pensando">' +
+      'Lendo o documento inteiro. Peça longa pode levar mais de um minuto.</div>';
+    return api('/functions/v1/advogado', {
+      method:'POST', body: JSON.stringify({acao:'ler', documento_id:doc.id})
     }).then(function(r){
-      E.ultimaAnalise = r.analise;
       E.docAtual = doc.id;
-      E.msgs[E.msgs.length - 1] = {papel:"assistant", analise:r.analise, docId:doc.id};
-      /* amarra a conversa ao documento: a próxima pergunta que ele
-         escrever já sai com o teor do PDF no contexto */
-      E.conversaCtx = {documento:doc.id, caso:doc.caso_id || null, nome:doc.nome, tipo:"documento"};
-      E.conversaId = null;
-      pinta(); rolaFim();
+      pintaAnaliseDoc(r.analise, doc.id);
+      return carrega();
     });
   })
+  .catch(function(e){ $('saidaAssist').innerHTML = ''; erroAssist(e.message); })
+  .then(function(){ livre($('btLer')); });
+}
+
+function minuta(){
+  var casoId = $('minutaCaso').value, bt = $('btMinutar');
+  if(!casoId){ erroAssist('Escolha o caso.'); return; }
+  erroAssist('');
+  ocupado(bt, 'Escrevendo…');
+  $('caixaMinuta').innerHTML = '<div class="bloco-cab"><h2>Minuta</h2></div>' +
+    '<div class="pensando" style="margin:18px">Montando a peça e conferindo os fundamentos. ' +
+    'Isso costuma levar de um a três minutos.</div>';
+
+  api('/functions/v1/advogado', {
+    method:'POST', body: JSON.stringify({acao:'minutar', caso_id:casoId, peca: $('tipoPeca').value})
+  })
+  .then(function(r){
+    var c = acha(casoId);
+    $('caixaMinuta').innerHTML =
+      '<div class="bloco-cab"><h2>Minuta</h2><div class="dir">' +
+        '<button class="bt bt-fino bt-mini" id="btCopiaMinuta">Copiar</button></div></div>' +
+      '<div class="bloco-corpo">' +
+        '<div class="aviso" style="margin-bottom:14px">' + ico('alerta') +
+          '<div><b>Minuta.</b> Os [COLCHETES] são dados que ela não tinha. ' +
+          'Confira os fundamentos e a seção do fim antes de protocolar.</div></div>' +
+        '<div class="peca" id="minutaTexto">' + esc(r.peca) + '</div>' +
+        pintaFontes(r.fontes) +
+      '</div>';
+    return carrega();
+  })
   .catch(function(e){
-    E.msgs[E.msgs.length - 1] = {papel:"assistant", texto:"Não consegui ler " + f.name + ": " + e.message};
-    pinta();
-  });
+    $('caixaMinuta').innerHTML = '<div class="bloco-cab"><h2>Minuta</h2></div>' +
+      '<div class="bloco-corpo"><p class="erro">' + esc(e.message) + '</p></div>';
+  })
+  .then(function(){ livre($('btMinutar')); });
 }
 
 function proximoPasso(qual, bt){
@@ -3279,45 +2622,65 @@ function proximoPasso(qual, bt){
   var doc = null;
   E.docs.forEach(function(x){ if(x.id === docId) doc = x; });
 
-  /* Amarra a conversa ao documento — daí qualquer pergunta seguinte já
-     sai com o teor dele no contexto. */
-  if(qual === 'conversar' || qual === 'peca'){
+  if(qual === 'conversar'){
     E.conversaCtx = {documento:docId, caso:(doc && doc.caso_id) || null,
                      nome:(doc && doc.nome) || 'documento', tipo:'documento'};
     E.conversaId = null; E.msgs = [];
-    pinta();
-    if(qual === 'peca'){
-      /* peça agora sai pela própria conversa, não por uma aba separada */
-      var cx = $('pergunta');
-      if(cx){ cx.value = 'Redija a peça que responde este documento.'; pergunta(); }
-    }
+    E.assist = 'perguntar'; pinta();
+    return;
+  }
+
+  if(qual === 'peca'){
+    ocupado(bt, 'Escrevendo…');
+    $('saidaPasso').innerHTML = '<div class="pensando">Montando a peça a partir do que está ' +
+      'no documento. Costuma levar de um a três minutos.</div>';
+    api('/functions/v1/advogado', {
+      method:'POST',
+      body: JSON.stringify({acao:'minutar', documento_id:docId,
+                            caso_id:(doc && doc.caso_id) || null, peca:'peça de resposta'})
+    })
+    .then(function(r){
+      $('saidaPasso').innerHTML =
+        '<div class="aviso" style="margin:14px 0">' + ico('alerta') +
+          '<div><b>Minuta.</b> Os [COLCHETES] são dados que ela não tinha. ' +
+          'Confira a seção do fim antes de protocolar.</div></div>' +
+        '<div class="peca" id="minutaTexto">' + esc(r.peca) + '</div>' +
+        pintaFontes(r.fontes) +
+        '<div class="acoes" style="margin-top:11px">' +
+          '<button class="bt bt-fino bt-mini" id="btCopiaMinuta">Copiar</button></div>';
+    })
+    .catch(function(e){ $('saidaPasso').innerHTML = '<p class="erro">' + esc(e.message) + '</p>'; })
+    .then(function(){ livre(bt); });
     return;
   }
 
   var para = qual === 'resumo-cliente' ? 'cliente' : 'escritorio';
-  var caso = doc && doc.caso_id ? acha(doc.caso_id) : null;
   ocupado(bt, 'Resumindo…');
-  E.msgs.push({papel:'assistant', texto:'', pensando:true});
-  pinta(); rolaFim();
-
+  $('saidaPasso').innerHTML = '<div class="pensando">Resumindo…</div>';
   api('/functions/v1/advogado', {
     method:'POST', body: JSON.stringify({acao:'resumir', documento_id:docId, para:para})
   })
   .then(function(r){
-    E.msgs[E.msgs.length - 1] = {papel:'assistant', texto:r.resumo,
-      zapPara: (para === 'cliente' && caso) ? caso : null};
+    var caso = doc && doc.caso_id ? acha(doc.caso_id) : null;
+    $('saidaPasso').innerHTML =
+      '<div class="rascunho" id="rascunho" style="margin-top:14px">' + esc(r.resumo) + '</div>' +
+      '<div class="acoes" style="margin-top:11px">' +
+        '<button class="bt bt-fino bt-mini" id="btCopia">Copiar</button>' +
+        (para === 'cliente' && caso
+          ? '<a class="bt bt-ouro bt-mini" href="' + zap(caso.whatsapp, r.resumo) +
+            '" target="_blank" rel="noopener">' + ico('zap') + 'Mandar pra ' + esc(primeiro(caso.nome)) + '</a>'
+          : '') +
+      '</div>' +
+      (para === 'cliente'
+        ? '<p class="uso">Revise antes de enviar: sai em nome do escritório, e a OAB não ' +
+          'permite promessa de resultado nem menção a valores.</p>' : '');
   })
-  .catch(function(e){ E.msgs.pop(); erroAssist(e.message); })
-  .then(function(){ livre(bt); pinta(); rolaFim(); });
+  .catch(function(e){ $('saidaPasso').innerHTML = '<p class="erro">' + esc(e.message) + '</p>'; })
+  .then(function(){ livre(bt); });
 }
 
 function agendaDaAnalise(indice, docId){
-  /* Pega a análise DAQUELE documento, não a última lida: desde que a
-     conversa aceita vários PDFs, clicar em "Agendar" numa análise antiga
-     agendava a data do documento mais recente. */
-  var a = null;
-  E.msgs.forEach(function(m){ if(m.analise && m.docId === docId) a = m.analise; });
-  if(!a) a = E.ultimaAnalise;
+  var a = E.ultimaAnalise;
   if(!a || !a.datas || !a.datas[indice]) return;
   var d = a.datas[indice], doc = null;
   E.docs.forEach(function(x){ if(x.id === docId) doc = x; });
@@ -3367,11 +2730,10 @@ function tempoReal(){
           {event:'*',      schema:'public', table:'mensagens_wpp'},
           {event:'*',      schema:'public', table:'conversas_wpp'},
           {event:'*',      schema:'public', table:'contatos'},
-          {event:'*',      schema:'public', table:'gmail_mensagens'},
+          {event:'*',      schema:'public', table:'wpp_sessao'},
           {event:'INSERT', schema:'public', table:'casos'},
           {event:'INSERT', schema:'public', table:'publicacoes'},
-          {event:'*',      schema:'public', table:'tarefas'},
-          {event:'*',      schema:'public', table:'processos'}
+          {event:'*',      schema:'public', table:'tarefas'}
         ]
       },
       /* sem o token o Realtime aplica o RLS como anônimo e não vem nada */
@@ -3452,6 +2814,17 @@ function digitando(){
                  a.type !== 'radio'));
 }
 
+var pintaCedo = null;
+function repintaLogo(){
+  if(pintaCedo) return;
+  /* junta rajadas de eventos numa pintura só */
+  pintaCedo = setTimeout(function(){
+    pintaCedo = null;
+    if(digitando()) return;
+    pinta();
+  }, 350);
+}
+
 function chegou(tabela, tipo, linha){
   /* mensagem de WhatsApp na conversa aberta entra na hora, sem recarregar
      tudo — é o caso em que meio segundo de atraso se nota */
@@ -3481,6 +2854,8 @@ function chegou(tabela, tipo, linha){
       avisaChegada(linha);
     }
   }
+
+  if(tabela === 'wpp_sessao'){ E.wpp.sessao = linha; repintaLogo(); }
 
   /* o resto muda contador e lista: relê e repinta, agrupado */
   if(agrupa) clearTimeout(agrupa);
@@ -3527,20 +2902,22 @@ document.addEventListener('visibilitychange', function(){
    ficaria parada no código velho. */
 var vigia = null;
 function vigiaSessaoWpp(){
-  /* Não existe mais QR expirando: isso aqui só cobre o intervalo entre
-     conectar o número no Kapso e a tela perceber. Confere devagar e para
-     sozinha assim que conecta. */
-  var precisa = E.vista === 'whatsapp' && (!E.wpp.conexao || !E.wpp.conexao.conectado);
+  var precisa = E.vista === 'whatsapp' &&
+                (!E.wpp.sessao || E.wpp.sessao.estado !== 'conectado');
   if(precisa && !vigia){
+    /* Roda mesmo com o websocket de pé. O canal pode subir e não trazer
+       nada (RLS mal configurado, por exemplo) — e aí a tela de QR ficaria
+       parada pra sempre. Só enquanto não pareia, e para sozinha depois. */
     vigia = setInterval(function(){
-      api('/functions/v1/kapso', {method:'POST', body: JSON.stringify({acao:'status'})})
-        .then(function(r){
-          var antes = E.wpp.conexao;
-          E.wpp.conexao = r;
-          if(r.conectado) return carrega().then(pinta);
-          if(!antes || antes.motivo !== r.motivo) pinta();
-        }).catch(function(){});
-    }, 15000);
+      api('/rest/v1/wpp_sessao?select=*&id=eq.1').then(function(r){
+        var nova = (r || [])[0] || null, antes = E.wpp.sessao;
+        E.wpp.sessao = nova;
+        var mudou = !antes || !nova ||
+                    antes.estado !== nova.estado || antes.qr !== nova.qr;
+        if(nova && nova.estado === 'conectado') return carrega().then(pinta);
+        if(mudou) pinta();
+      }).catch(function(){});
+    }, 3000);
   } else if(!precisa && vigia){
     clearInterval(vigia); vigia = null;
   }
@@ -3582,14 +2959,12 @@ function enviaWpp(){
   pinta();
   var c3 = $('wppCorpo'); if(c3) c3.scrollTop = c3.scrollHeight;
 
-  api('/functions/v1/kapso', {
-    method:'POST',
-    body: JSON.stringify({acao:'enviar', telefone:aberta.telefone, texto:texto})
+  api('/rest/v1/wpp_fila', {
+    method:'POST', headers:{'Prefer':'return=minimal'},
+    body: JSON.stringify({telefone:aberta.telefone, texto:texto})
   })
-  .then(function(){ return carrega(); })
-  .then(function(){ pinta(); var c4 = $('wppCorpo'); if(c4) c4.scrollTop = c4.scrollHeight; })
   .catch(function(e){
-    var el = $('erroWpp'); if(el) el.textContent = 'Não deu pra enviar: ' + e.message;
+    var el = $('erroWpp'); if(el) el.textContent = 'Não entrou na fila: ' + e.message;
   });
 }
 
@@ -3681,231 +3056,6 @@ function criaDoContato(){
   })
   .then(function(id){ return carrega().then(function(){ fechaModal(); vai('caso', id); }); })
   .catch(function(e){ $('erroVira').textContent = e.message; bt.disabled = false; });
-}
-
-/* ---------- Gmail ---------- */
-function gmailApi(acao, extra){
-  return api('/functions/v1/gmail', {
-    method:'POST', body: JSON.stringify(Object.assign({acao:acao}, extra || {}))
-  });
-}
-
-function conectaGmail(){
-  var bt = $('btConectaGmail'); if(bt) bt.disabled = true;
-  gmailApi('auth-url').then(function(r){
-    window.open(r.url, 'conectar_gmail', 'width=520,height=680');
-    /* a nova conta chega pela vigia, que já está de olho porque estamos na aba gmail */
-  }).catch(function(e){
-    if(bt) bt.disabled = false;
-    alert('Não deu pra abrir o Google: ' + e.message);
-  });
-}
-
-/* Enquanto não conectado (ou ainda sincronizando o histórico), fica de
-   olho — igual a vigiaSessaoWpp() já faz pro QR do WhatsApp. */
-var vigiaGmailT = null;
-function vigiaGmail(){
-  var precisa = E.vista === 'gmail' &&
-                (!E.gmail.status || !E.gmail.status.conectado || E.gmail.sincronizando);
-  if(precisa && !vigiaGmailT){
-    vigiaGmailT = setInterval(function(){
-      gmailApi('status').then(function(r){
-        var conectouAgora = r.conectado && (!E.gmail.status || !E.gmail.status.conectado);
-        E.gmail.status = r;
-        if(conectouAgora){ carrega().then(pinta); }
-        // reconecta OU entrou na aba com backfill ainda pela metade (ex:
-        // fechou o painel no meio do primeiro sync) — retoma sozinho.
-        if((conectouAgora || r.backfill_pendente) && !E.gmail.sincronizando) sincronizaGmail();
-        if(!conectouAgora) pinta();
-      }).catch(function(){});
-    }, 3000);
-  } else if(!precisa && vigiaGmailT){
-    clearInterval(vigiaGmailT); vigiaGmailT = null;
-  }
-}
-
-/* Chama "sincronizar" em sequência (sem sobrepor) até a function avisar
-   que não tem mais página de backfill — assim o histórico completo entra
-   rápido, em vez de esperar o cron de 5 em 5 minutos ir de pouquinho em
-   pouquinho (foi exatamente o erro de lentidão que já cometemos com o
-   primeiro sync do WhatsApp). */
-function sincronizaGmail(){
-  if(E.gmail.sincronizando) return;
-  E.gmail.sincronizando = true; pinta();
-  (function passo(){
-    gmailApi('sincronizar').then(function(r){
-      if(r.mais){ return carrega().then(passo); }
-      E.gmail.sincronizando = false;
-      return carrega().then(pinta);
-    }).catch(function(){
-      E.gmail.sincronizando = false; pinta();
-    });
-  })();
-}
-
-function abreThreadGmail(threadId){
-  if(E.gmail.abertaThread !== threadId) E.gmail.anexos = [];  // anexo é da resposta daquela conversa
-  E.gmail.abertaThread = threadId;
-  marcaGmailLida(threadId);
-  pinta();
-  var cx = $('gmailCorpo'); if(cx) cx.scrollTop = cx.scrollHeight;
-
-  /* A lista não traz corpo (ver COLS_GMAIL). Ao abrir, busca o corpo só
-     dessa conversa — UMA chamada ao banco, não uma por mensagem. Só cai
-     no Gmail (Edge Function) se o corpo nunca tiver sido salvo. */
-  var faltando = E.gmail.caixa.filter(function(m){ return m.thread_id === threadId && m.corpo == null; });
-  if(!faltando.length) return;
-
-  E.gmail.carregandoCorpo = threadId;
-  api('/rest/v1/gmail_mensagens?select=gmail_id,corpo,html&thread_id=eq.' + encodeURIComponent(threadId))
-    .then(function(linhas){
-      var porId = {};
-      (linhas || []).forEach(function(l){ porId[l.gmail_id] = l; });
-      var semCorpo = [];
-      E.gmail.caixa.forEach(function(m){
-        if(m.thread_id !== threadId) return;
-        var l = porId[m.gmail_id];
-        if(l && l.corpo != null){ m.corpo = l.corpo; m.html = l.html; }
-        else if(m.corpo == null) semCorpo.push(m.gmail_id);
-      });
-      E.gmail.carregandoCorpo = null;
-      if(E.gmail.abertaThread === threadId) pinta();
-      semCorpo.forEach(carregaCorpoGmail);
-    })
-    .catch(function(e){
-      E.gmail.carregandoCorpo = null;
-      var el = $('erroGmail'); if(el) el.textContent = e.message;
-    });
-}
-
-function carregaCorpoGmail(gmailId){
-  gmailApi('mensagem', {gmail_id: gmailId}).then(function(r){
-    E.gmail.caixa.forEach(function(m){
-      if(m.gmail_id === gmailId){ m.corpo = r.corpo; m.html = r.html; }
-    });
-    pinta();
-  }).catch(function(e){ var el = $('erroGmail'); if(el) el.textContent = e.message; });
-}
-
-function modalNovoEmailGmail(){
-  E.gmail.anexosNovo = [];
-  abreModal('Novo e-mail',
-    '<div class="campo"><label for="neGmailPara">Para</label>' +
-      '<input id="neGmailPara" type="email" placeholder="destinatario@exemplo.com" required></div>' +
-    '<div class="campo"><label for="neGmailAssunto">Assunto</label>' +
-      '<input id="neGmailAssunto"></div>' +
-    '<div class="campo"><label for="neGmailTexto">Mensagem</label>' +
-      '<textarea id="neGmailTexto" style="min-height:160px"></textarea></div>' +
-    '<input type="file" id="arqGmailNovo" class="oculto" multiple>' +
-    '<button class="bt bt-fino bt-mini" id="btAnexoNovoEmail">' + ico('clipe') + 'Anexar arquivo</button>' +
-    '<div class="anexos" id="gmailAnexosNovo"></div>' +
-    '<p class="erro" id="erroNovoEmail"></p>',
-    '<button class="bt bt-fino" data-fecha="">Cancelar</button>' +
-    '<button class="bt bt-ouro" id="btEnviaNovoEmail">Enviar</button>');
-}
-
-function enviaNovoEmailGmail(){
-  var para = $('neGmailPara').value.trim(), texto = $('neGmailTexto').value.trim();
-  var erro = $('erroNovoEmail');
-  if(!para || !texto){ erro.textContent = 'Preencha o destinatário e a mensagem.'; return; }
-
-  var bt = $('btEnviaNovoEmail'); bt.disabled = true; erro.textContent = '';
-  gmailApi('enviar', {para: para, assunto: $('neGmailAssunto').value.trim(), texto: texto,
-                      anexos: E.gmail.anexosNovo})
-    .then(function(){ E.gmail.anexosNovo = []; return carrega(); })
-    .then(function(){ fechaModal(); pinta(); })
-    .catch(function(e){ bt.disabled = false; erro.textContent = e.message; });
-}
-
-/* ---------- anexos ---------- */
-/* O arquivo vira base64 aqui no navegador e viaja junto com o pedido de
-   envio; quem monta o MIME multipart é a Edge Function. Guardar o base64
-   no estado (e não confiar no <input type=file>) é o que faz o anexo
-   sobreviver a um repinte da tela. */
-function listaAnexoDe(idContainer){
-  return idContainer === 'gmailAnexosNovo' ? E.gmail.anexosNovo : E.gmail.anexos;
-}
-
-function tamanhoArq(b){
-  if(b === null || b === undefined) return '';
-  return b < 1048576 ? Math.max(1, Math.round(b / 1024)) + ' KB' : (b / 1048576).toFixed(1) + ' MB';
-}
-
-function pintaAnexos(idContainer){
-  var cx = $(idContainer); if(!cx) return;
-  cx.innerHTML = listaAnexoDe(idContainer).map(function(a, i){
-    return '<span class="anexo-chip"><b>' + esc(a.nome) + '</b>' +
-      '<span class="li-s">' + tamanhoArq(a.tamanho) + '</span>' +
-      '<button data-tira-anexo="' + idContainer + ':' + i + '" aria-label="Remover anexo">' + ico('x') + '</button></span>';
-  }).join('');
-}
-
-function leAnexos(arquivos, idContainer){
-  var lista = listaAnexoDe(idContainer), pendentes = arquivos.length;
-  if(!pendentes) return;
-  [].forEach.call(arquivos, function(f){
-    var leitor = new FileReader();
-    leitor.onload = function(){
-      lista.push({nome:f.name, tipo:f.type || 'application/octet-stream',
-                  dados:String(leitor.result).split(',')[1] || '', tamanho:f.size});
-      if(--pendentes === 0) pintaAnexos(idContainer);
-    };
-    leitor.onerror = function(){ if(--pendentes === 0) pintaAnexos(idContainer); };
-    leitor.readAsDataURL(f);
-  });
-}
-
-/* ---------- assinatura ---------- */
-function modalAssinaturaGmail(){
-  var atual = (E.gmail.status && E.gmail.status.assinatura) || '';
-  abreModal('Assinatura de e-mail',
-    '<p style="font-size:13px;color:var(--cinza);margin-bottom:14px">' +
-      'Vai no fim de todo e-mail enviado pelo painel — resposta e mensagem nova.</p>' +
-    '<div class="campo" style="margin:0"><label for="asGmailTexto">Assinatura</label>' +
-      '<textarea id="asGmailTexto" style="min-height:140px" placeholder="Gildemi Senna&#10;OAB/SP 417.105&#10;(11) 90000-0000">' +
-      esc(atual) + '</textarea></div>' +
-    '<p class="uso" style="margin:6px 0 0">Deixe em branco pra não usar assinatura nenhuma.</p>' +
-    '<p class="erro" id="erroAssinatura"></p>',
-    '<button class="bt bt-fino" data-fecha="">Cancelar</button>' +
-    '<button class="bt bt-ouro" id="btSalvaAssinatura">Salvar</button>');
-}
-
-function salvaAssinaturaGmail(){
-  var bt = $('btSalvaAssinatura'); bt.disabled = true;
-  gmailApi('salvar-assinatura', {assinatura: $('asGmailTexto').value})
-    .then(function(r){
-      if(E.gmail.status) E.gmail.status.assinatura = r.assinatura;
-      fechaModal(); pinta();
-    })
-    .catch(function(e){ bt.disabled = false; var el = $('erroAssinatura'); if(el) el.textContent = e.message; });
-}
-
-function enviaGmail(){
-  var cx = $('gmailTexto'), texto = cx.value.trim();
-  if(!texto) return;
-  var msgs = E.gmail.caixa.filter(function(m){ return m.thread_id === E.gmail.abertaThread; })
-    .sort(function(a,b){ return new Date(a.recebida_em||0) - new Date(b.recebida_em||0); });
-  var ultima = msgs[msgs.length - 1];
-  if(!ultima) return;
-  var para = ultima.enviada_por_mim ? ultima.para : ultima.de;
-
-  var bt = $('btEnviaGmail'); bt.disabled = true;
-  $('erroGmail').textContent = '';
-
-  gmailApi('enviar', {para: para, texto: texto, resposta_a: ultima.gmail_id,
-                      anexos: E.gmail.anexos})
-    .then(function(){
-      cx.value = '';
-      E.gmail.anexos = [];
-      return carrega();
-    })
-    .then(function(){ bt.disabled = false; pinta();
-      var c2 = $('gmailCorpo'); if(c2) c2.scrollTop = c2.scrollHeight;
-    })
-    .catch(function(e){
-      bt.disabled = false;
-      var el = $('erroGmail'); if(el) el.textContent = e.message;
-    });
 }
 
 /* ---------- modais ---------- */
@@ -4192,7 +3342,7 @@ document.addEventListener('click', function(e){
   if(rap){
     var a = rap.dataset.rapida;
     if(a === 'novo')   modalNovoCaso();
-    if(a === 'ler'){ vai('assistente'); var arq = $('arquivo'); if(arq) arq.click(); }
+    if(a === 'ler'){ E.assist = 'ler'; vai('assistente'); }
     if(a === 'varrer') varrerDiario(null);
     if(a === 'criticos'){ E.filtro = 'criticos'; E.modo = 'lista'; vai('esteira'); }
     if(a === 'triar'){
@@ -4206,6 +3356,9 @@ document.addEventListener('click', function(e){
   var fil = e.target.closest('[data-filtro]');
   if(fil){ E.filtro = fil.dataset.filtro || null; pinta(); return; }
 
+  var ab = e.target.closest('[data-assist]');
+  if(ab){ E.assist = ab.dataset.assist; pinta(); return; }
+
   var at = e.target.closest('[data-atalho]');
   if(at){
     $('pergunta').value = at.dataset.atalho;
@@ -4217,32 +3370,8 @@ document.addEventListener('click', function(e){
   var cw = e.target.closest('[data-conversa-wpp]');
   if(cw){ abreConversaWpp(cw.dataset.conversaWpp); return; }
 
-  var tg = e.target.closest('[data-abre-thread-gmail]');
-  if(tg){ abreThreadGmail(tg.dataset.abreThreadGmail); return; }
-
-  var pg = e.target.closest('[data-pasta-gmail]');
-  if(pg){ E.gmail.pasta = pg.dataset.pastaGmail; E.gmail.abertaThread = null; pinta(); return; }
-
-  var td = e.target.closest('[data-tira-doc]');
-  if(td){
-    E.assistArquivos.splice(parseInt(td.dataset.tiraDoc, 10), 1);
-    pintaAnexoAssist();
-    return;
-  }
-
-  var ta = e.target.closest('[data-tira-anexo]');
-  if(ta){
-    var alvo = ta.dataset.tiraAnexo.split(':');
-    listaAnexoDe(alvo[0]).splice(parseInt(alvo[1], 10), 1);
-    pintaAnexos(alvo[0]);
-    return;
-  }
-
-  var cg = e.target.closest('[data-abre-corpo-gmail]');
-  if(cg){ carregaCorpoGmail(cg.dataset.abreCorpoGmail); return; }
-
   var cv = e.target.closest('[data-conversa]');
-  if(cv){ abreConversa(cv.dataset.conversa); return; }
+  if(cv){ E.assist = 'perguntar'; abreConversa(cv.dataset.conversa); return; }
 
   var pp = e.target.closest('[data-passo]');
   if(pp){ proximoPasso(pp.dataset.passo, pp); return; }
@@ -4254,19 +3383,7 @@ document.addEventListener('click', function(e){
   if(vd){
     var d = null;
     E.docs.forEach(function(x){ if(x.id === vd.dataset.documento) d = x; });
-    if(d && d.analise_at){
-      E.docAtual = d.id;
-      E.conversaCtx = {documento:d.id, caso:d.caso_id || null, nome:d.nome, tipo:'documento'};
-      E.conversaId = null;
-      E.msgs = [];
-      vai('assistente');
-      carregaAnaliseDoc(d.id).then(function(a){
-        if(!a) return;
-        E.ultimaAnalise = a;
-        E.msgs = [{papel:'assistant', analise:a, docId:d.id}];
-        pinta(); rolaFim();
-      });
-    }
+    if(d && d.analise){ E.assist = 'ler'; pinta(); E.docAtual = d.id; pintaAnaliseDoc(d.analise, d.id); }
     else if(d) alert('Esse documento ainda não foi lido.');
     return;
   }
@@ -4281,62 +3398,8 @@ document.addEventListener('click', function(e){
   if(dia){ E.diaSel = dia.dataset.dia; pinta(); return; }
 
   var proc = e.target.closest('[data-processo]');
-  if(proc){
-    E.processoAberto = proc.dataset.processo || null;
-    E.procAba = 'resumo';
-    if(E.vista !== 'processos' && E.vista !== 'observacao') vai('processos');
-    else pinta();
-    if(E.processoAberto) carregaMovimentosProcesso(E.processoAberto);
-    return;
-  }
+  if(proc){ E.processoAberto = proc.dataset.processo; vai('processos'); return; }
   if(e.target.closest('[data-voltar-processos]')){ E.processoAberto = null; pinta(); return; }
-
-  var oa = e.target.closest('[data-obs-aba]');
-  if(oa){ E.obsAba = oa.dataset.obsAba; pinta(); return; }
-
-  var pa = e.target.closest('[data-proc-aba]');
-  if(pa){
-    E.procAba = pa.dataset.procAba;
-    pinta();
-    if(E.procAba === 'publicacoes') carregaTextoPubs(E.processoAberto);
-    return;
-  }
-
-  var fp = e.target.closest('[data-filtro-processo]');
-  if(fp){ E.filtroProc = fp.dataset.filtroProcesso || null; pinta(); return; }
-
-  var cp = e.target.closest('[data-confirma-processo]');
-  if(cp){ acaoProcesso(cp.dataset.confirmaProcesso, 'confirmar'); return; }
-
-  var ip = e.target.closest('[data-ignora-processo]');
-  if(ip){
-    if(confirm('Ignorar este processo? Ele sai da lista de observação, mas fica salvo — dá pra reavaliar depois.'))
-      acaoProcesso(ip.dataset.ignoraProcesso, 'ignorar');
-    return;
-  }
-
-  var rp = e.target.closest('[data-reavalia-processo]');
-  if(rp){ acaoProcesso(rp.dataset.reavaliaProcesso, 'reavaliar'); return; }
-
-  var ep = e.target.closest('[data-edita-processo]');
-  if(ep){ modalEditaProcesso(ep.dataset.editaProcesso); return; }
-
-  var aip = e.target.closest('[data-abre-ia-processo]');
-  if(aip){
-    var pid = aip.dataset.abreIaProcesso, procIa = null;
-    E.processos.forEach(function(x){ if(x.id === pid) procIa = x; });
-    E.conversaCtx = {processo:pid, nome:procIa ? (procIa.processo||'') : '', tipo:'processo'};
-    E.conversaId = null; E.msgs = [];
-    vai('assistente');
-    if(aip.dataset.atalhoProc){
-      setTimeout(function(){
-        $('pergunta').value = aip.dataset.atalhoProc;
-        ajustaAltura($('pergunta'));
-        pergunta();
-      }, 0);
-    }
-    return;
-  }
 
   var mes = e.target.closest('[data-mes]');
   if(mes){
@@ -4366,7 +3429,7 @@ document.addEventListener('click', function(e){
     return;
   }
   var and = e.target.closest('[data-andamento]');
-  if(and){ verAndamento(and.dataset.andamento, and.dataset.trib, and.dataset.processoId); return; }
+  if(and){ verAndamento(and.dataset.andamento, and.dataset.trib); return; }
 
   if(e.target.closest('[data-fecha]')) { fechaModal(); return; }
   if(e.target.id === 'fundoModal')     { fechaModal(); return; }
@@ -4386,35 +3449,18 @@ document.addEventListener('click', function(e){
     var cc = acha(E.casoId);
     E.conversaCtx = {caso:E.casoId, nome:cc ? cc.nome : '', tipo:'caso'};
     E.conversaId = null; E.msgs = [];
-    vai('assistente');
+    E.assist = 'perguntar'; vai('assistente');
   }
-  else if(id === 'btMinutarCaso'){
-    var cm = acha(E.casoId);
-    E.conversaCtx = {caso:E.casoId, nome:cm ? cm.nome : '', tipo:'caso'};
-    E.conversaId = null; E.msgs = [];
-    vai('assistente');
-    var cxm = $('pergunta');
-    if(cxm){ cxm.value = 'Minute a peça deste caso.'; ajustaAltura(cxm); cxm.focus(); }
-  }
+  else if(id === 'btMinutarCaso'){   E.casoCtx = E.casoId; E.assist = 'minutar';   vai('assistente'); }
   else if(id === 'btPerguntar')    pergunta();
   else if(id === 'btVoz')          alternaVoz();
   else if(id === 'btEnviaWpp')     enviaWpp();
-  else if(id === 'btConfereWpp')   confereConexaoWpp();
-  else if(id === 'btConectaGmail')   conectaGmail();
-  else if(id === 'btSincronizaGmail') sincronizaGmail();
-  else if(id === 'btEnviaGmail')      enviaGmail();
-  else if(id === 'btNovoEmail')       modalNovoEmailGmail();
-  else if(id === 'btEnviaNovoEmail')  enviaNovoEmailGmail();
-  else if(id === 'btAnexoGmail')      $('arqGmail').click();
-  else if(id === 'btAnexoNovoEmail')  $('arqGmailNovo').click();
-  else if(id === 'btAssinaturaGmail') modalAssinaturaGmail();
-  else if(id === 'btSalvaAssinatura') salvaAssinaturaGmail();
-  else if(id === 'btSalvaEdicaoProcesso') salvaEdicaoProcesso(e.target.closest('button').dataset.processoId);
   else if(id === 'btSalvaContato') salvaContato();
   else if(id === 'btViraCaso')     viraCaso();
   else if(id === 'btCriaDoContato')criaDoContato();
   else if(id === 'btNovaConversa') novaConversa();
-  else if(id === 'btAnexoDoc')  $('arquivo').click();
+  else if(id === 'btLer')       mandaArquivo();
+  else if(id === 'btMinutar')   minuta();
   else if(id === 'btCopiaMinuta'){
     var mt = $('minutaTexto').textContent, bm = e.target.closest('button');
     if(navigator.clipboard) navigator.clipboard.writeText(mt);
@@ -4441,18 +3487,12 @@ function fechaLado(){
 /* o input de arquivo é recriado a cada pintura, então o ouvinte fica no
    documento em vez de no elemento */
 document.addEventListener('input', function(e){
-  if(e.target.id === 'pergunta' || e.target.id === 'wppTexto' || e.target.id === 'gmailTexto') ajustaAltura(e.target);
+  if(e.target.id === 'pergunta' || e.target.id === 'wppTexto') ajustaAltura(e.target);
   if(e.target.id === 'wppBusca'){
     E.wpp.busca = e.target.value;
     var foco = document.activeElement === e.target, pos = e.target.selectionStart;
     pinta();
     if(foco){ var novo = $('wppBusca'); if(novo){ novo.focus(); novo.setSelectionRange(pos,pos); } }
-  }
-  if(e.target.id === 'gmailBusca'){
-    E.gmail.busca = e.target.value;
-    var focoG = document.activeElement === e.target, posG = e.target.selectionStart;
-    pinta();
-    if(focoG){ var novoG = $('gmailBusca'); if(novoG){ novoG.focus(); novoG.setSelectionRange(posG,posG); } }
   }
 });
 document.addEventListener('keydown', function(e){
@@ -4462,30 +3502,15 @@ document.addEventListener('keydown', function(e){
   if(e.target.id === 'wppTexto' && e.key === 'Enter' && !e.shiftKey){
     e.preventDefault(); enviaWpp();
   }
-  if(e.target.id === 'gmailTexto' && e.key === 'Enter' && !e.shiftKey){
-    e.preventDefault(); enviaGmail();
-  }
 });
 
 document.addEventListener('change', function(e){
-  if(e.target.id === 'arqGmail'){     leAnexos(e.target.files, 'gmailAnexos');     e.target.value = ''; return; }
-  if(e.target.id === 'arqGmailNovo'){ leAnexos(e.target.files, 'gmailAnexosNovo'); e.target.value = ''; return; }
   if(e.target.id === 'arquivo'){
-    E.assistArquivos = (E.assistArquivos || []).concat([].slice.call(e.target.files));
-    e.target.value = '';
-    pintaAnexoAssist();
+    var f = e.target.files[0], bt = $('btLer'), cx = $('solta');
+    if(bt) bt.disabled = !f;
+    if(cx && f) cx.querySelector('b').textContent = f.name;
   }
 });
-
-/* chips dos PDFs escolhidos, ao lado do campo da conversa */
-function pintaAnexoAssist(){
-  var cx = $('assistAnexo'); if(!cx) return;
-  cx.innerHTML = (E.assistArquivos || []).map(function(f, i){
-    return '<span class="anexo-chip"><b>' + esc(f.name) + '</b>' +
-      '<span class="li-s">' + tamanhoArq(f.size) + '</span>' +
-      '<button data-tira-doc="' + i + '" aria-label="Remover anexo">' + ico('x') + '</button></span>';
-  }).join('');
-}
 
 
 $('busca').addEventListener('input', function(){

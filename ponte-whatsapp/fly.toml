@@ -1,5 +1,5 @@
 # fly launch --no-deploy  e depois  fly deploy
-app = "sena-ponte-whatsapp"
+app = "ponte-whatsapp"
 primary_region = "gru"          # São Paulo
 
 [build]

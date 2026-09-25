@@ -30,7 +30,7 @@ const TZ = "America/Sao_Paulo";
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, content-type",
+  "Access-Control-Allow-Headers": "authorization, apikey, content-type",
   "Access-Control-Allow-Methods": "GET, OPTIONS",
 };
 
@@ -116,10 +116,10 @@ Deno.serve(async (req) => {
   const linhas: string[] = [
     "BEGIN:VCALENDAR",
     "VERSION:2.0",
-    "PRODID:-//Sena & Sena Advogados//Painel//PT-BR",
+    "PRODID:-//Escritório//Painel//PT-BR",
     "CALSCALE:GREGORIAN",
     "METHOD:PUBLISH",
-    "X-WR-CALNAME:Sena & Sena — prazos e audiências",
+    "X-WR-CALNAME:Escritório — prazos e audiências",
     `X-WR-TIMEZONE:${TZ}`,
     // 1 hora: o celular volta a checar mais ou menos nesse ritmo
     "REFRESH-INTERVAL;VALUE=DURATION:PT1H",
@@ -138,7 +138,7 @@ Deno.serve(async (req) => {
 
     linhas.push(
       "BEGIN:VEVENT",
-      `UID:tarefa-${t.id}@senaesena`,
+      `UID:tarefa-${t.id}@escritorio`,
       `DTSTAMP:${agora}`,
       `DTSTART:${carimbo(inicio)}`,
       `DTEND:${carimbo(fim)}`,
@@ -164,7 +164,7 @@ Deno.serve(async (req) => {
 
     linhas.push(
       "BEGIN:VEVENT",
-      `UID:prescricao-${c.id}@senaesena`,
+      `UID:prescricao-${c.id}@escritorio`,
       `DTSTAMP:${agora}`,
       `DTSTART;VALUE=DATE:${dia}`,
       `DTEND;VALUE=DATE:${soData(seguinte.toISOString())}`,

@@ -1,7 +1,7 @@
 // ============================================================
 // SENA & SENA — Edge Function "lembretes"
 //
-// Manda no WhatsApp do Gildemi:
+// Manda no WhatsApp do o advogado:
 //   • todo dia de manhã  → o que vence hoje, o que atrasou, quem está
 //                          perto de prescrever, quem chegou novo
 //   • toda segunda-feira → o resumo da semana: o que entrou, o que
@@ -13,7 +13,7 @@
 // COMO O ENVIO FUNCIONA
 // Usa a API oficial da Meta (WhatsApp Cloud API). O número REMETENTE é
 // um número novo do escritório, cadastrado na Meta; o DESTINATÁRIO é o
-// WhatsApp pessoal do Gildemi. O número pessoal dele não é tocado e
+// WhatsApp pessoal do o advogado. O número pessoal dele não é tocado e
 // continua no aplicativo normal.
 //
 // Mensagem que o sistema começa (fora da janela de 24h) exige TEMPLATE
@@ -40,14 +40,14 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, content-type",
+  "Access-Control-Allow-Headers": "authorization, apikey, content-type",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 const json = (b: unknown, s = 200) =>
   new Response(JSON.stringify(b), { status: s, headers: { ...CORS, "content-type": "application/json" } });
 
 const TZ = "America/Sao_Paulo";
-const ADV = "Gildemi";
+const ADV = "o advogado";
 
 /** Data de hoje no fuso de São Paulo — o servidor roda em UTC. */
 function hojeSP(): string {
@@ -140,7 +140,7 @@ function textoSemanal(casos: any[], tarefas: any[], pubsNaoLidas: number): strin
     c.alerta_prazo === "critico" || c.alerta_prazo === "prescrito");
   const semTriagem = casos.filter((c) => c.etapa === "triagem");
 
-  const l: string[] = ["*Resumo da semana — Sena & Sena*", "", "*Como está*"];
+  const l: string[] = ["*Resumo da semana — Escritório*", "", "*Como está*"];
   l.push(`• ${abertos.length} casos em aberto`);
   l.push(`• ${novos.length} entraram nos últimos 7 dias`);
   l.push(`• ${semTriagem.length} esperando triagem`);

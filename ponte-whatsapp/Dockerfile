@@ -3,7 +3,13 @@ FROM node:22-slim
 
 WORKDIR /app
 
-# baileys usa criptografia nativa; nada de compilar aqui
+# uma dependencia do baileys (libsignal-node) vem de um pacote git; sem isso
+# o npm install falha. E o lockfile aponta pra ssh://git@github.com — sem
+# chave configurada no build, reescreve pra https antes de instalar.
+RUN apt-get update && apt-get install -y --no-install-recommends git ca-certificates \
+    && rm -rf /var/lib/apt/lists/* \
+    && git config --global url."https://github.com/".insteadOf "ssh://git@github.com/"
+
 COPY package.json ./
 RUN npm install --omit=dev
 

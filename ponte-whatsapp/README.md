@@ -1,4 +1,4 @@
-# Ponte do WhatsApp — Sena & Sena
+# Ponte do WhatsApp — Escritório
 
 Processo que segura a sessão do WhatsApp Web e liga o aparelho ao CRM.
 
@@ -8,7 +8,7 @@ Espelhar o WhatsApp por QR Code usa **biblioteca não-oficial**. Funciona, muita
 gente usa, e **contraria os termos do WhatsApp**. Existe risco real de o número
 ser bloqueado — sem aviso e sem recurso.
 
-**Use um número novo do escritório.** O número pessoal do Gildemi é a agenda de
+**Use um número novo do escritório.** O número pessoal do o advogado é a agenda de
 clientes dele; se aquele número cair, cai o escritório junto.
 
 O caminho oficial é a API da Meta (Cloud API), que não corre esse risco — mas ela
@@ -56,7 +56,7 @@ pelo aparelho.
 | Tabela | Quem escreve | Pra quê |
 |---|---|---|
 | `wpp_sessao` | ponte | estado da conexão e o QR |
-| `contatos` | ponte + painel | a agenda; o `nome` que o Gildemi edita nunca é sobrescrito |
+| `contatos` | ponte + painel | a agenda; o `nome` que o o advogado edita nunca é sobrescrito |
 | `conversas_wpp` | ponte | uma por contato, com prévia e não lidas |
 | `mensagens_wpp` | ponte | o histórico |
 | `wpp_fila` | painel | mensagem pra enviar; a ponte consome a cada 3s |

@@ -279,7 +279,7 @@ alter view public.casos_com_prazo set (security_invoker = on);
 -- ---------- 5) os processos dele, pela OAB ----------
 -- O DJEN entrega PUBLICAÇÃO, não processo. Mas cada publicação carrega o
 -- número do processo — então agrupando por ele sai a carteira inteira do
--- escritório, que é o que o Gildemi quer ver: "meus processos".
+-- escritório, que é o que o o advogado quer ver: "meus processos".
 --
 -- Fica como view e não como tabela de propósito: assim nunca desencontra
 -- da varredura. Publicação nova entra, o processo aparece sozinho.
@@ -353,7 +353,7 @@ alter view public.processos_oab set (security_invoker = on);
 -- ⚠️ Espelhar o WhatsApp por QR Code usa biblioteca não-oficial. Funciona,
 -- mas contraria os termos do WhatsApp e existe risco real de o número ser
 -- bloqueado. A recomendação continua sendo usar um número novo do
--- escritório aqui, e deixar o pessoal do Gildemi fora disso.
+-- escritório aqui, e deixar o pessoal do o advogado fora disso.
 
 create table if not exists public.contatos (
   id          uuid primary key default gen_random_uuid(),
@@ -476,3 +476,384 @@ join public.contatos ct on ct.id = c.contato_id
 left join public.casos cs on cs.id = ct.caso_id;
 
 alter view public.wpp_caixa set (security_invoker = on);
+
+-- ============================================================
+-- 8) PROCESSOS — V3: entidade de primeira classe e triagem
+-- ============================================================
+-- Até aqui, "processo" era só um agrupamento de `publicacoes` (view
+-- `processos_oab`). Isso misturava duas coisas: "a OAB apareceu numa
+-- publicação" com "esse processo é da carteira do escritório". A partir
+-- daqui `processos` é tabela de verdade, com UUID próprio, e todo processo
+-- achado automaticamente nasce em observação — só vira carteira oficial
+-- quando o advogado confirma. `publicacoes` continua existindo do jeito
+-- que está; só ganha uma FK para o processo dela.
+
+-- ---------- 8a) a tabela ----------
+create table if not exists public.processos (
+  id                   uuid primary key default gen_random_uuid(),
+  criado_at            timestamptz not null default now(),
+  atualizado_at        timestamptz not null default now(),
+
+  -- identidade: cnj_normalizado (só dígitos, 20 posições) é a chave real
+  -- de deduplicação daqui pra frente. processo/processo_num continuam
+  -- existindo pelo mesmo motivo de sempre em `publicacoes`: nem toda
+  -- publicação chega com um CNJ de 20 dígitos limpo, e não dá pra perder
+  -- o processo só porque o número veio mal formatado.
+  cnj_normalizado      text,
+  processo_num         text,
+  processo             text,
+
+  tribunal             text,
+  orgao                text,
+  classe               text,
+  comarca              text,
+  assunto              text,
+
+  -- nem DJEN nem DataJud trazem isso de graça — quando aparece é porque a
+  -- IA achou escrito no texto de alguma publicação, ou o advogado editou
+  -- à mão (edição manual sempre vence, ver função `andamento` no cnj).
+  valor_causa          numeric,
+  autuado_em           date,
+  justica_gratuita     boolean,
+  prioridades          jsonb,        -- array de strings
+  audiencias           jsonb,        -- array de {data, tipo, local}
+
+  caso_id              uuid references public.casos(id) on delete set null,
+
+  -- dois conceitos, dois campos — nunca misturar.
+  -- status_triagem: onde o processo está no funil de confirmação do advogado.
+  -- status_processual: a situação real do processo na Justiça.
+  status_triagem       text not null default 'observacao'
+                          check (status_triagem in ('observacao','confirmado','ignorado')),
+  status_processual    text not null default 'em_andamento'
+                          check (status_processual in
+                            ('em_andamento','arquivado','suspenso','baixado','encerrado')),
+
+  -- auditoria da decisão do advogado
+  confirmado_em        timestamptz,
+  confirmado_por       uuid references auth.users(id),
+  ignorado_em          timestamptz,
+  ignorado_por         uuid references auth.users(id),
+
+  -- descoberta
+  origem               text,                  -- 'djen' | 'datajud' | ... (fonte que originou o registro)
+  data_distribuicao    date,
+  ultima_movimentacao  timestamptz,           -- cache: max() das fontes/movimentos, evita join pra ordenar/filtrar
+  partes                jsonb,                -- cache do último snapshot de partes
+  advogados             jsonb,                -- cache do DJEN: [{nome,oab,uf}], sem amarração a polo (o DJEN não informa)
+
+  -- confiança da triagem: orienta o que revisar primeiro, nunca decide sozinha
+  confianca_nivel      text check (confianca_nivel in ('alta','media','baixa')),
+  confianca_score      smallint,              -- 0–100, recalculado a cada sincronização
+  confianca_sinais     jsonb                  -- os sinais que compuseram o score, pro advogado auditar
+);
+
+comment on table public.processos is
+  'Entidade de primeira classe. Nasce em observacao quando achado pela OAB; só vira carteira oficial (confirmado) por ação do advogado. status_triagem = fluxo de confirmação; status_processual = estado real do processo — nunca misturar os dois.';
+
+-- duas chaves de dedup parciais: uma para quem tem CNJ válido de 20
+-- dígitos, outra (por texto mascarado) para quem não tem — sem isso, um
+-- processo com CNJ malformado duplicaria a cada vez que o setup.sql roda
+-- de novo.
+create unique index if not exists processos_cnj_norm_idx
+  on public.processos (cnj_normalizado) where cnj_normalizado is not null;
+create unique index if not exists processos_sem_cnj_idx
+  on public.processos (processo) where cnj_normalizado is null;
+
+create index if not exists processos_status_triagem_idx on public.processos (status_triagem);
+create index if not exists processos_caso_idx           on public.processos (caso_id);
+create index if not exists processos_confianca_idx      on public.processos (confianca_nivel)
+  where status_triagem = 'observacao';
+
+create or replace function public.processos_toca_atualizado_at()
+returns trigger language plpgsql as $$
+begin
+  new.atualizado_at = now();
+  return new;
+end;
+$$;
+
+drop trigger if exists processos_atualizado_at on public.processos;
+create trigger processos_atualizado_at
+  before update on public.processos
+  for each row execute function public.processos_toca_atualizado_at();
+
+-- ---------- 8b) normalização de CNJ ----------
+-- Só dígitos. "0001234-56.2026.8.10.0001" e "00012345620268100001" têm
+-- que virar a mesma chave — é o que impede duplicar processo por causa de
+-- formatação diferente entre fontes.
+create or replace function public.normaliza_cnj(txt text)
+returns text language sql immutable as $$
+  select nullif(regexp_replace(coalesce(txt, ''), '\D', '', 'g'), '')
+$$;
+
+-- ---------- 8c) de onde cada processo foi descoberto/confirmado ----------
+-- Um processo pode aparecer em mais de uma fonte (hoje DJEN e DataJud).
+-- Isso não cria processo duplicado: enriquece o mesmo registro.
+create table if not exists public.processo_fontes (
+  id            uuid primary key default gen_random_uuid(),
+  processo_id   uuid not null references public.processos(id) on delete cascade,
+  fonte         text not null check (fonte in ('djen','datajud')),
+  id_externo    text,             -- id do registro na fonte, quando existir
+  dados         jsonb,            -- payload cru daquela fonte, pra auditoria
+  primeira_vez  timestamptz not null default now(),
+  ultima_vez    timestamptz not null default now(),
+  unique (processo_id, fonte, id_externo)
+);
+create index if not exists processo_fontes_processo_idx on public.processo_fontes (processo_id);
+
+-- ---------- 8d) movimentações processuais ----------
+create table if not exists public.processo_movimentos (
+  id              uuid primary key default gen_random_uuid(),
+  processo_id     uuid not null references public.processos(id) on delete cascade,
+  data_movimento  timestamptz,
+  descricao       text not null,
+  orgao           text,
+  fonte           text not null check (fonte in ('djen','datajud')),
+  id_externo      text,           -- chave da fonte, pra não duplicar no upsert
+  dados           jsonb,
+  sincronizado_em timestamptz not null default now(),
+  unique (processo_id, fonte, id_externo)
+);
+create index if not exists processo_mov_processo_idx on public.processo_movimentos (processo_id, data_movimento desc);
+
+-- ---------- 8e) auditoria da triagem ----------
+create table if not exists public.processo_eventos (
+  id           uuid primary key default gen_random_uuid(),
+  processo_id  uuid not null references public.processos(id) on delete cascade,
+  criado_at    timestamptz not null default now(),
+  usuario_id   uuid references auth.users(id),
+  acao         text not null check (acao in
+    ('encontrado','confirmado','ignorado','reavaliado','arquivado','reaberto',
+     'dados_atualizados','fonte_sincronizada')),
+  origem       text,              -- fonte envolvida, quando fizer sentido
+  detalhe      jsonb
+);
+create index if not exists processo_eventos_processo_idx on public.processo_eventos (processo_id, criado_at desc);
+
+-- ---------- 8f) publicações e conversas passam a apontar pro processo ----------
+-- id_cnj continua sendo o id da PUBLICAÇÃO (comunicação do DJEN). Não
+-- confundir com o número CNJ do PROCESSO — são coisas diferentes.
+alter table public.publicacoes add column if not exists processo_id uuid
+  references public.processos(id) on delete set null;
+create index if not exists pub_processo_id_idx on public.publicacoes (processo_id);
+
+alter table public.conversas add column if not exists processo_id uuid
+  references public.processos(id) on delete set null;
+create index if not exists conversas_processo_idx on public.conversas (processo_id);
+
+-- ---------- 8f-2) advogados da comunicação (DJEN), sem amarração a polo ----------
+alter table public.processos add column if not exists advogados jsonb;
+alter table public.processos add column if not exists valor_causa numeric;
+alter table public.processos add column if not exists autuado_em date;
+alter table public.processos add column if not exists justica_gratuita boolean;
+alter table public.processos add column if not exists prioridades jsonb;
+alter table public.processos add column if not exists audiencias jsonb;
+
+-- ---------- 8g) RLS ----------
+alter table public.processos          enable row level security;
+alter table public.processo_fontes    enable row level security;
+alter table public.processo_movimentos enable row level security;
+alter table public.processo_eventos   enable row level security;
+
+drop policy if exists "auth tudo processos" on public.processos;
+create policy "auth tudo processos" on public.processos
+  for all to authenticated using (true) with check (true);
+
+drop policy if exists "auth tudo processo_fontes" on public.processo_fontes;
+create policy "auth tudo processo_fontes" on public.processo_fontes
+  for all to authenticated using (true) with check (true);
+
+drop policy if exists "auth tudo processo_movimentos" on public.processo_movimentos;
+create policy "auth tudo processo_movimentos" on public.processo_movimentos
+  for all to authenticated using (true) with check (true);
+
+drop policy if exists "auth tudo processo_eventos" on public.processo_eventos;
+create policy "auth tudo processo_eventos" on public.processo_eventos
+  for all to authenticated using (true) with check (true);
+
+-- ---------- 8h) migração: cria processos a partir das publicações existentes ----------
+-- Idempotente: já rodou uma vez? na segunda, os dois índices únicos acima
+-- barram a reinserção e o "where processo_id is null" barra o
+-- religamento — então rodar de novo só pega o que ainda não foi ligado
+-- (inclusive publicação nova que chegou depois da primeira migração).
+--
+-- Critério do status inicial (conservador de propósito): só nasce
+-- confirmado quando já existe publicação daquele processo com caso_id
+-- preenchido — ou seja, o escritório já tratou isso à mão antes da V3.
+-- Todo o resto nasce em observação, pra passar pela triagem.
+with normalizado as (
+  select
+    pub.processo,
+    pub.processo_num,
+    pub.tribunal, pub.orgao, pub.classe, pub.partes, pub.caso_id, pub.disponibilizada,
+    public.normaliza_cnj(pub.processo_num) as cnj_norm
+  from public.publicacoes pub
+  where pub.processo is not null
+),
+grupos as (
+  select
+    processo as chave_processo,
+    (array_agg(cnj_norm order by disponibilizada desc nulls last)
+       filter (where length(cnj_norm) = 20))[1] as cnj_normalizado,
+    (array_agg(processo_num order by disponibilizada desc nulls last))[1] as processo_num,
+    (array_agg(tribunal     order by disponibilizada desc nulls last))[1] as tribunal,
+    (array_agg(orgao        order by disponibilizada desc nulls last))[1] as orgao,
+    (array_agg(classe       order by disponibilizada desc nulls last))[1] as classe,
+    (array_agg(partes       order by disponibilizada desc nulls last))[1] as partes,
+    (array_agg(caso_id      order by disponibilizada desc nulls last)
+       filter (where caso_id is not null))[1] as caso_id,
+    max(disponibilizada) as ultima,
+    bool_or(caso_id is not null) as tem_caso_vinculado
+  from normalizado
+  group by processo
+)
+insert into public.processos
+  (cnj_normalizado, processo_num, processo, tribunal, orgao, classe, partes,
+   caso_id, status_triagem, origem, ultima_movimentacao, confirmado_em)
+select
+  g.cnj_normalizado, g.processo_num, g.chave_processo, g.tribunal, g.orgao, g.classe, g.partes,
+  g.caso_id,
+  case when g.tem_caso_vinculado then 'confirmado' else 'observacao' end,
+  'djen',
+  g.ultima::timestamptz,
+  case when g.tem_caso_vinculado then now() else null end
+from grupos g
+on conflict do nothing;
+
+update public.publicacoes pub
+set processo_id = pr.id
+from public.processos pr
+where pub.processo_id is null
+  and pub.processo is not null
+  and pub.processo = pr.processo;
+
+-- evento de auditoria pra cada processo que a migração criou (não gera
+-- duplicata em reruns: só insere um evento 'dados_atualizados' de origem
+-- migracao_v3 se ainda não existir um pra aquele processo).
+insert into public.processo_eventos (processo_id, acao, origem, detalhe)
+select p.id, 'dados_atualizados', 'migracao_v3', jsonb_build_object('status_triagem_inicial', p.status_triagem)
+from public.processos p
+where not exists (
+  select 1 from public.processo_eventos e
+  where e.processo_id = p.id and e.origem = 'migracao_v3'
+);
+
+-- ---------- 8i) processos_oab agora é view de compatibilidade ----------
+-- O frontend atual lê `/rest/v1/processos_oab`. Em vez de quebrar essa
+-- leitura enquanto a Fase 3 (tela nova) não chega, a view passa a olhar
+-- pra `processos` — só que agora só mostra o que foi CONFIRMADO. O que
+-- está em observação/ignorado aparece nas telas novas da Fase 2, não aqui.
+drop view if exists public.processos_oab;
+create or replace view public.processos_oab as
+select
+  p.processo,
+  p.processo_num,
+  p.tribunal,
+  p.orgao,
+  p.classe,
+  p.partes,
+  p.caso_id,
+  coalesce(pf.publicacoes, 0) as publicacoes,
+  pf.ultima,
+  pf.primeira,
+  coalesce(pf.nao_lidas, 0)  as nao_lidas
+from public.processos p
+left join lateral (
+  select
+    count(*)                              as publicacoes,
+    max(pub.disponibilizada)              as ultima,
+    min(pub.disponibilizada)              as primeira,
+    count(*) filter (where not pub.lida)  as nao_lidas
+  from public.publicacoes pub
+  where pub.processo_id = p.id
+) pf on true
+where p.status_triagem = 'confirmado';
+
+alter view public.processos_oab set (security_invoker = on);
+
+-- ---------- 8j) view: processos em observação, com prioridade de revisão ----------
+create or replace view public.processos_observacao as
+select p.*
+from public.processos p
+where p.status_triagem = 'observacao'
+order by
+  case p.confianca_nivel when 'baixa' then 0 when 'media' then 1 when 'alta' then 2 else 3 end,
+  p.criado_at desc;
+
+alter view public.processos_observacao set (security_invoker = on);
+
+-- ============================================================
+-- 9) GMAIL — conta conectada e mensagens sincronizadas
+-- ============================================================
+-- Ao contrário do WhatsApp (que usa uma biblioteca não-oficial), o Gmail
+-- tem API oficial e gratuita do Google, com login de verdade na tela do
+-- Google — o advogado escolhe a própria conta, não dá pra conectar a
+-- errada sem querer.
+--
+-- gmail_conta guarda o refresh_token do Google — equivale à senha
+-- permanente do e-mail dele. Por isso, diferente de toda outra tabela
+-- deste arquivo, ela FICA SEM policy nenhuma pra 'authenticated': RLS
+-- ligada sem nenhuma policy = ninguém lê/escreve por fora do service
+-- role. Só a Edge Function `gmail` (que usa a service role key) enxerga.
+--
+-- Linha única (igual `wpp_sessao`) — é uma conta de e-mail do escritório
+-- por vez, não uma tabela multiusuário.
+create table if not exists public.gmail_conta (
+  id                    int primary key default 1 check (id = 1),
+  usuario_id            uuid references auth.users(id),   -- quem conectou, pra auditoria
+  email                 text not null,
+  refresh_token         text not null,
+  access_token          text,
+  access_token_expira   timestamptz,
+  history_id            text,              -- cursor do Gmail pra sync incremental (backfill já terminou quando isto existe)
+  backfill_page_token   text,              -- página atual do backfill inicial, enquanto history_id ainda é nulo
+  sincronizando         boolean not null default false,
+  sincronizado_ate      timestamptz,
+  conectado_em          timestamptz not null default now(),
+  assinatura            text,              -- rodapé colado no fim de todo e-mail enviado pelo painel
+  erro                  text
+);
+alter table public.gmail_conta enable row level security;
+
+-- o conteúdo dos e-mails em si é dado de trabalho, não credencial — segue
+-- o mesmo modelo do resto do app.
+create table if not exists public.gmail_mensagens (
+  id                  uuid primary key default gen_random_uuid(),
+  gmail_id            text not null unique,
+  thread_id           text not null,
+  de                  text,
+  para                text,
+  assunto             text,
+  previa              text,               -- snippet, pra lista carregar rápido
+  corpo               text,               -- corpo completo, buscado sob demanda
+  html                boolean not null default false,
+  recebida_em         timestamptz,
+  enviada_por_mim     boolean not null default false,
+  labels              jsonb,              -- labelIds do Gmail (INBOX, SENT, TRASH, SPAM…) — dá pra separar por pasta
+  analisada_ia        boolean not null default false,  -- já passou pela extração de datas? evita reprocessar
+  caso_id             uuid references public.casos(id) on delete set null,
+  criado_at           timestamptz not null default now()
+);
+create index if not exists gmail_msg_thread_idx   on public.gmail_mensagens (thread_id);
+create index if not exists gmail_msg_recebida_idx on public.gmail_mensagens (recebida_em desc);
+alter table public.gmail_mensagens add column if not exists labels jsonb;
+alter table public.gmail_mensagens add column if not exists analisada_ia boolean not null default false;
+alter table public.gmail_conta     add column if not exists assinatura text;
+
+alter table public.gmail_mensagens enable row level security;
+drop policy if exists "auth tudo gmail_mensagens" on public.gmail_mensagens;
+create policy "auth tudo gmail_mensagens" on public.gmail_mensagens
+  for all to authenticated using (true) with check (true);
+
+-- ---------- cron: sincroniza a caixa a cada 5 minutos ----------
+-- Mesmo padrão do bloco da seção 6 — descomentar e trocar <PROJETO> e
+-- <CRON_SECRET> depois de aplicar este arquivo.
+--
+-- select cron.schedule('gmail-sincroniza', '*/5 * * * *', $$
+--   select net.http_post(
+--     url     := 'https://<PROJETO>.supabase.co/functions/v1/gmail',
+--     headers := '{"Content-Type":"application/json","x-cron-secret":"<CRON_SECRET>"}'::jsonb,
+--     body    := '{"acao":"sincronizar"}'::jsonb
+--   );
+-- $$);

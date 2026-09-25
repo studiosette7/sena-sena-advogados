@@ -1,26 +1,26 @@
-# ============================================================
-# O que NUNCA pode subir
-# ============================================================
+# material e dados de cliente nunca entram no molde
+_material/capas/*
+_material/marca/*
+_material/fotos/
+!_material/capas/.gitkeep
+!_material/marca/.gitkeep
 
-# Carrega o CRON_SECRET em claro — é assim que o pg_cron funciona.
+# fontes: licença é de quem usa, não do repositório
+_build/fontes/*
+!_build/fontes/.gitkeep
+
+# páginas geradas
+index.html
+painel.html
+painel-demo.html
+
+# segredos e estado local
 supabase/migrations/*_agendamentos.sql
-
-# Prints do Lawra: produto de terceiro, não é nosso pra publicar.
-referencia/
-
-# Sessão do WhatsApp: são as credenciais do aparelho pareado.
-ponte-whatsapp/sessao/
-ponte-whatsapp/node_modules/
-**/node_modules/
-
-# Estado local do CLI do Supabase (guarda o ref do projeto).
 supabase/.temp/
 supabase/.branches/
-
-# Ajustes da máquina, não do projeto.
-.claude/
-.DS_Store
-**/.DS_Store
-*.log
+ponte-whatsapp/sessao/
+**/node_modules/
 .env
 .env.*
+.DS_Store
+**/.DS_Store

@@ -16,22 +16,23 @@ REF    = os.path.join(RAIZ, '_material', 'referencia')
 CAPAS  = os.path.join(RAIZ, '_material', 'capas')
 
 # --- dados do cliente -----------------------------------------------------
+# --- dados do cliente -----------------------------------------------------
+# PREENCHA ANTES DE RODAR. É a única parte que muda de advogado pra advogado.
 DADOS = {
-    'ADV':     'Gildemi Sena',
-    'OAB':     'OAB/SP 417.105',
-    'WPP':     '5511966617309',
-    'WPP_FMT': '(11) 96661-7309',
-    'END':     'R. Rio Branco, 133 — Centro, São Bernardo do Campo/SP',
-    'CEP':     '09710-090',
-    'INSTA':   'sena.sena.adv',
-    'MAPA_Q':  'Rua+Rio+Branco+133+Centro+Sao+Bernardo+do+Campo+SP',
+    'ADV':     'Nome do Advogado',
+    'OAB':     'OAB/UF 000.000',
+    'WPP':     '5511900000000',          # com 55, sem espaco nem sinal
+    'WPP_FMT': '(11) 90000-0000',
+    'END':     'Rua Exemplo, 000 — Bairro, Cidade/UF',
+    'CEP':     '00000-000',
+    'INSTA':   'usuario.do.instagram',
+    'MAPA_Q':  'Rua+Exemplo+000+Bairro+Cidade+UF',
 
     # --- Supabase -------------------------------------------------------
-    # Preencher depois de criar o projeto (Settings > API). A chave anon e
-    # publica por natureza: quem protege o banco e o RLS do setup.sql.
-    # Enquanto estiver vazio, a landing grava em localStorage e nada se perde.
-    'SUPABASE_URL':  'https://dbugecyjjcfbmqeejupd.supabase.co',
-    'SUPABASE_ANON': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRidWdlY3lqamNmYm1xZWVqdXBkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcyNjYxMzUsImV4cCI6MjEwMjg0MjEzNX0.zuq4yQW-pvjoIGVXg3DcHjqxOGVN3vLmZAPeaaXNngU',
+    # O instalar.sh preenche isto sozinho. A chave anon e publica por
+    # natureza: quem protege o banco e o RLS do setup.sql.
+    'SUPABASE_URL':  '',
+    'SUPABASE_ANON': '',
 }
 
 # Geometria dos botoes dourados dentro das artes de capa, medida pixel a pixel
@@ -152,7 +153,7 @@ ASSETS = {
     'ELE':     png_recorte(os.path.join(REF, '1.png'), 620, (.0309, .0808, .3400, .9185))[:2],
     # fundo marinho com o monograma, pra dar textura nas secoes
     'FUNDO':   jpg(os.path.join(REF, '2.png'), 1400, 80),
-    'LOGO':    png_logo(os.path.join(MARCA, 'logo-sena-sena.png'), 520),
+    'LOGO':    png_logo(os.path.join(MARCA, 'logo.png'), 520),
 }
 
 # dimensoes reais do recorte, pros atributos width/height do <img>
@@ -160,6 +161,11 @@ _ele = png_recorte(os.path.join(REF, '1.png'), 620, (.0309, .0808, .3400, .9185)
 MEDIDAS = {'ELE_W': str(_ele[0]), 'ELE_H': str(_ele[1])}
 print(f'  (recorte ELE: {_ele[0]}x{_ele[1]} px)')
 
+# As fontes ficam de fora do molde de proposito: a Monument Extended que o
+# projeto original usa tem licenca de DESKTOP, que nao permite distribuir o
+# arquivo num site nem num repositorio. Coloque em _build/fontes/ a fonte
+# que voce tiver licenca de webfont para usar, com estes nomes — ou troque
+# por uma livre (Archivo Expanded serve bem) e ajuste o --ff-t no template.
 FONTES_EMB = {
     'FT_REG':  fonte('MonumentExtended-Regular'),
     'FT_BOLD': fonte('MonumentExtended-Ultrabold'),
@@ -199,7 +205,7 @@ with open(os.path.join(BUILD, 'demo.js'), encoding='utf-8') as f:
 
 print()
 renderiza('index.tpl.html',  'index.html',  {'DEMO': ''})   # a landing, publica
-renderiza('painel.tpl.html', 'painel.html', {'DEMO': ''})   # o CRM, so pro Gildemi
+renderiza('painel.tpl.html', 'painel.html', {'DEMO': ''})   # o CRM, so pro advogado
 # A demonstracao NUNCA pode apontar pro banco de verdade: se apontasse, um
 # clique numa apresentacao mexeria em caso de cliente. O endereco falso e o
 # que faz o dublê do fetch entrar no lugar da rede.

@@ -9,7 +9,7 @@
 <meta property="og:type" content="website">
 <meta property="og:title" content="{{ADV}} — Advogado Trabalhista e Previdenciário">
 <meta property="og:description" content="Saiu da empresa e ficou a dúvida? O INSS negou seu benefício? Conte o que aconteceu.">
-<meta property="og:locale" content="pt_BR"><!-- Meta Pixel Code --><script>!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');fbq('init','1559776645947018');fbq('track','PageView');</script><noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=1559776645947018&amp;ev=PageView&amp;noscript=1" alt=""></noscript><!-- End Meta Pixel Code -->
+<meta property="og:locale" content="pt_BR">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='18' fill='%2316294A'/><text y='72' x='50' text-anchor='middle' font-size='58' font-family='Georgia,serif' fill='%23E0B959'>S</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1122,7 +1122,7 @@ document.getElementById('fone').addEventListener('blur', function(){ if(this.val
 
    Regra que nao pode quebrar: isso NUNCA segura o WhatsApp. O envio
    e disparado e o fluxo segue — se o banco cair, o lead ainda chega
-   pelo zap, que hoje e o canal que o Gildemi realmente le.
+   pelo zap, que hoje e o canal que o o advogado realmente le.
 --------------------------------------------------------------- */
 var SB_URL  = '{{SUPABASE_URL}}',
     SB_ANON = '{{SUPABASE_ANON}}';
@@ -1223,7 +1223,7 @@ form.addEventListener('keydown', function(e){
   if(e.key === 'Enter' && e.target.tagName !== 'TEXTAREA'){ e.preventDefault(); btnAv.click(); }
 });
 
-/* Mede somente a intenção de contato, sem enviar dados do caso à Meta. */document.addEventListener('click',function(e){var link=e.target.closest('a[href*="wa.me/"]');if(link&&typeof window.fbq==='function')window.fbq('track','Contact');});ajustaRamos();
+ajustaRamos();
 })();
 </script>
 </body>

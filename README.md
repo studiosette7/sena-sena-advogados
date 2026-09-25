@@ -1,63 +1,104 @@
-# Sena & Sena Advogados
+# Modelo — site e CRM para advogado
 
-Landing page e CRM do escritório do **Gildemi Sena** (OAB/SP 417.105),
-advogado trabalhista e previdenciário no ABC Paulista.
+Base para montar landing de captação + CRM para escritórios de advocacia,
+com foco em **Direito Trabalhista e Previdenciário**.
 
-⚠️ **Repositório privado.** Leva fotos do cliente, a marca dele e dados do
-escritório. Não torne público.
+Nasceu de um projeto real e foi limpo para ser reaproveitado: não há dado,
+foto nem marca de cliente aqui.
 
-## No ar
+## O que vem pronto
 
-| O quê | Endereço |
-|---|---|
-| Site | https://sena-sena-advogados.netlify.app |
-| CRM | https://sena-crm.netlify.app |
+**Landing page** em arquivo único, com imagens e fontes embutidas.
+Formulário qualificado de 4 etapas que ramifica entre trabalhista e
+previdenciário, monta uma "ficha do caso" e grava direto no CRM.
 
-## Como mexer
+**CRM** também em arquivo único:
 
-`index.html` e `painel.html` são **gerados** — não edite direto.
+- Esteira kanban de casos, arrastando entre etapas
+- Relógio de prescrição bienal, calculado em SQL
+- Agenda com calendário e assinatura `.ics` para o celular
+- Assistente de IA: conversa com voz, leitura de PDF e minuta de peça
+- Espelho de WhatsApp, com contatos editáveis
+- **Processos puxados do Diário de Justiça pelo número da OAB**
+
+## O diferencial: processos de graça
+
+Duas APIs públicas do CNJ substituem as assinaturas pagas de monitoramento:
+
+- **Comunica/DJEN** — publicações e intimações por número de OAB, sem chave
+- **DataJud** — a linha do tempo de cada processo
+
+Está em `supabase/functions/cnj/`. Basta a OAB do advogado.
+
+## Como usar
 
 ```bash
-# edite _build/index.tpl.html ou _build/painel.tpl.html, depois:
+# 1. preencha os dados do cliente
+#    _build/build.py → dicionário DADOS
+
+# 2. coloque o material em _material/
+#    capas/    home-desktop.png, home-mobile.png, sobre-mobile.png
+#    marca/    logo.png
+#    fontes/   em _build/fontes/ (veja a nota sobre licença)
+
+# 3. crie o banco e publique as funções
+npx supabase login
+bash instalar.sh
+
+# 4. gere as páginas
 python3 _build/build.py
 ```
 
-O `build.py` embute imagens e fontes em base64 e injeta os dados do cliente,
-gerando três arquivos de página única:
+Sai `index.html`, `painel.html` e `painel-demo.html` — este último com dados
+fictícios e o banco simulado dentro do arquivo, para apresentar ao cliente
+antes de existir qualquer infraestrutura.
 
-- `index.html` — a landing pública
-- `painel.html` — o CRM (exige login)
-- `painel-demo.html` — versão de apresentação, com dados fictícios e o banco
-  simulado dentro do próprio arquivo. **Nunca publique este.**
-
-## Estrutura
+## Como está montado
 
 ```
-_build/          templates e o script que gera os HTMLs
-_material/       fotos, marca e capas do cliente
-_setup/          ajudantes da instalação e conferência de segurança
-supabase/        schema, migrations e as 5 Edge Functions
-ponte-whatsapp/  serviço Node que espelha o WhatsApp (roda fora do Supabase)
+_build/          templates e o gerador das páginas
+_setup/          instalador e conferência de segurança
+supabase/        schema com RLS + 5 Edge Functions
+ponte-whatsapp/  serviço Node que espelha o WhatsApp
 ```
 
-## Documentos
+Backend em Supabase: 12 tabelas, 3 views, RLS em tudo. A landing usa a chave
+pública e **só consegue criar caso** — não lê, não edita, não apaga.
 
-- `ENTREGA.md` — o que está no ar, o que falta, como republicar
-- `INSTALACAO.md` — instalar do zero numa conta nova
-- `status-projeto-sena.md` — decisões de design da landing
-- `status-crm-sena.md` — decisões do CRM
+`bash _setup/conferir.sh` testa essas travas contra o projeto de verdade.
 
-## O que não está aqui, de propósito
+## Fontes — leia antes de publicar
 
-- **`supabase/migrations/*_agendamentos.sql`** — carrega o CRON_SECRET em claro.
-  Está no `.gitignore`. Para recriar, veja o fim de `supabase/setup.sql`.
-- **`referencia/`** — prints de produto de terceiro.
-- **`ponte-whatsapp/sessao/`** — credenciais do aparelho pareado.
+O `_build/fontes/` vem **vazio de propósito**. O projeto original usa a
+**Monument Extended**, cuja licença é de desktop: não permite embutir num site
+nem distribuir o arquivo. Coloque uma fonte que você tenha licença de webfont,
+ou troque por uma livre — **Archivo Expanded** é a substituta mais próxima, e
+a troca é o token `--ff-t` no topo de `_build/index.tpl.html`.
 
-## Pendências conhecidas
+## WhatsApp — leia antes de ligar
 
-- **Licença de webfont da Monument Extended** antes de virar domínio próprio.
-  Os arquivos em `_build/fontes/` são licença de desktop.
-- **Noka** nunca chegou; está Outfit no lugar.
-- Chave da Anthropic não configurada — as 3 funções de IA ficam desligadas.
-- Ponte do WhatsApp pronta, mas não hospedada.
+O espelho por QR Code usa biblioteca não-oficial. Funciona, mas contraria os
+termos do WhatsApp e existe risco real de bloqueio do número. **Use um número
+novo do escritório**, nunca o pessoal do advogado — é a agenda de clientes dele.
+
+Detalhes em `ponte-whatsapp/README.md`.
+
+## IA — leia antes de confiar
+
+As funções usam a API do Google Gemini (`gemini-2.5-flash`), pelo tier
+gratuito — sem cartão, sem custo dentro dos limites do plano free (na prática,
+dá folga de sobra pro uso de um escritório pequeno; se algum dia precisar de
+mais volume, dá pra ligar faturamento na mesma chave sem trocar nada no código).
+A regra codada é que **jurisprudência só é citada com busca feita na hora**
+(Google Search, via a ferramenta nativa do Gemini): se a busca não confirmar, a
+IA diz que não localizou, em vez de inventar. Peça sai sempre como **minuta**,
+com uma seção do que conferir antes de protocolar.
+
+Isso não é preciosismo — advogado já foi punido por citar acórdão inexistente
+vindo de IA.
+
+## Conformidade com a OAB
+
+Os textos da landing e os rascunhos que a IA gera seguem o Provimento 205/2021:
+sem promessa de resultado, sem preço, sem "consulta grátis" como isca, sem
+depoimento de cliente. Se for mexer na copy, mantenha isso.

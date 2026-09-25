@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ============================================================
-# Instalação do CRM Sena & Sena.
+# Instalação do CRM Escritório.
 #
 # Normalmente você não roda isto direto: abra o INSTALAR.command
 # com dois cliques, que ele cuida do login antes de chamar este aqui.
@@ -49,16 +49,16 @@ if [ -z "$REF" ]; then
   DBPASS=$(openssl rand -base64 24 | tr -d '/+=' | cut -c1-24)
 
   echo
-  echo "   Nome: sena-sena-crm     Região: São Paulo"
+  echo "   Nome: crm-advogado     Região: São Paulo"
   azul "   criando… leva uns 2 minutos, pode esperar"
-  if ! $SB projects create "sena-sena-crm" \
+  if ! $SB projects create "crm-advogado" \
         --org-id "$ORG" --region sa-east-1 --db-password "$DBPASS"; then
     erro "não deu pra criar o projeto"; exit 1
   fi
 
   # descobre o ref sozinho, sem pedir pra ninguém colar
   for _ in $(seq 1 30); do
-    REF=$($SB projects list --output json 2>/dev/null | python3 _setup/acha_ref.py sena-sena-crm)
+    REF=$($SB projects list --output json 2>/dev/null | python3 _setup/acha_ref.py crm-advogado)
     [ -n "$REF" ] && break
     sleep 4
   done
@@ -81,7 +81,7 @@ if ! $SB link --project-ref "$REF"; then erro "não deu pra ligar"; exit 1; fi
 ok "ligado ao projeto $REF"
 
 # ---------- 3) schema ----------
-azul "3/5  Aplicando o banco (12 tabelas, 3 views, RLS, arquivos)…"
+azul "3/5  Aplicando o banco (16 tabelas, 4 views, RLS, arquivos)…"
 if ! $SB db push --include-all; then
   erro "o banco não foi aplicado — pare aqui e mande a mensagem acima pro Rodrigo"
   exit 1
@@ -90,29 +90,46 @@ ok "banco pronto"
 
 # ---------- 4) funções e segredos ----------
 azul "4/5  Publicando as funções…"
-for f in triagem advogado cnj lembretes; do
+for f in triagem advogado cnj processos lembretes gmail; do
   echo "   → $f"
   $SB functions deploy "$f" --project-ref "$REF" >/dev/null || erro "falhou: $f"
 done
-# a agenda é buscada pelo app de calendário, que não manda cabeçalho de login
-echo "   → agenda"
-$SB functions deploy agenda --no-verify-jwt --project-ref "$REF" >/dev/null || erro "falhou: agenda"
+# agenda e gmail-callback são chamadas por quem não manda cabeçalho de
+# login do Supabase (app de calendário / redirect do Google) — quem
+# protege essas duas é o token/state na própria chamada, não o JWT.
+for f in agenda gmail-callback; do
+  echo "   → $f"
+  $SB functions deploy "$f" --no-verify-jwt --project-ref "$REF" >/dev/null || erro "falhou: $f"
+done
 ok "funções no ar"
 
 echo
 azul "     Chave da inteligência artificial"
-echo "     Pegue em: console.anthropic.com → API Keys → Create Key"
-echo "     (é a conta do Gildemi — é ele quem paga o uso)"
+echo "     Pegue em: aistudio.google.com → Get API key → Create API key"
+echo "     (gratuita, sem cartão — respeite os limites do tier free do Gemini)"
 echo "     Ao colar, a tela não mostra nada. É normal."
 echo
-read -rsp "     Cole a chave e aperte ENTER: " ANTKEY; echo
+read -rsp "     Cole a chave e aperte ENTER: " GEMKEY; echo
+
+echo
+azul "     Integração com o Gmail (opcional — pode deixar em branco e configurar depois)"
+echo "     Client ID/Secret saem do Google Cloud Console — veja o passo 11 do INSTALACAO.md"
+echo
+read -rp  "     Client ID: "     GOOGID
+read -rsp "     Client Secret: " GOOGSECRET; echo
 
 CRON=$(openssl rand -hex 24)
 AGEN=$(openssl rand -hex 24)
-$SB secrets set "ANTHROPIC_API_KEY=$ANTKEY" --project-ref "$REF" >/dev/null
+GOOGSTATE=$(openssl rand -hex 24)
+$SB secrets set "GEMINI_API_KEY=$GEMKEY"    --project-ref "$REF" >/dev/null
 $SB secrets set "CRON_SECRET=$CRON"         --project-ref "$REF" >/dev/null
 $SB secrets set "AGENDA_TOKEN=$AGEN"        --project-ref "$REF" >/dev/null
-unset ANTKEY
+$SB secrets set "GOOGLE_STATE_SECRET=$GOOGSTATE" --project-ref "$REF" >/dev/null
+if [ -n "$GOOGID" ]; then
+  $SB secrets set "GOOGLE_CLIENT_ID=$GOOGID"         --project-ref "$REF" >/dev/null
+  $SB secrets set "GOOGLE_CLIENT_SECRET=$GOOGSECRET" --project-ref "$REF" >/dev/null
+fi
+unset GEMKEY GOOGSECRET
 ok "segredos guardados no cofre do Supabase"
 
 # ---------- 5) apontar o site pro banco ----------
@@ -126,19 +143,29 @@ python3 _setup/aponta_build.py "$URL" "$ANON" || exit 1
 python3 _build/build.py || exit 1
 ok "index.html, painel.html e painel-demo.html reconstruídos"
 
+GMAIL_PENDENTE=""
+if [ -z "$GOOGID" ]; then
+  GMAIL_PENDENTE="
+  5. Gmail (pulado agora — Client ID/Secret em branco)
+     Siga o passo 11 do INSTALACAO.md no Google Cloud Console e depois:
+        npx supabase secrets set GOOGLE_CLIENT_ID=...     --project-ref $REF
+        npx supabase secrets set GOOGLE_CLIENT_SECRET=... --project-ref $REF
+"
+fi
+
 echo
 azul "═════════ FALTA FAZER NO SITE DO SUPABASE ═════════"
 cat <<FIM
 
-  Entre em supabase.com, abra o projeto sena-sena-crm e:
+  Entre em supabase.com, abra o projeto crm-advogado e:
 
   1. Database → Replication → supabase_realtime
      Marque: casos, tarefas, publicacoes, contatos,
-             conversas_wpp, mensagens_wpp, wpp_sessao
+             conversas_wpp, mensagens_wpp, wpp_sessao, gmail_mensagens
      SEM ISSO O PAINEL NÃO ATUALIZA SOZINHO.
 
   2. Authentication → Users → Add user
-     E-mail do Gildemi, uma senha, e marque "Auto Confirm User"
+     E-mail do o advogado, uma senha, e marque "Auto Confirm User"
 
   3. Authentication → Providers → Email
      DESLIGUE "Enable sign-ups"
@@ -148,7 +175,8 @@ cat <<FIM
      Cole os 3 blocos do fim de supabase/setup.sql, trocando
         <PROJETO>      por  $REF
         <CRON_SECRET>  por  $CRON
-
+     (o bloco gmail-sincroniza, na seção 9, é opcional)
+$GMAIL_PENDENTE
   GUARDE ISTO — é a senha do calendário do celular:
         $AGEN
 
